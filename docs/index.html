@@ -198,7 +198,9 @@ body::before {
 .brawler-card:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.14); }
 .card-header { padding: 15px 17px 12px; display: flex; align-items: center; gap: 12px; position: relative; border-bottom: 1px solid var(--border); }
 .rarity-strip { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-.brawler-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 23px; flex-shrink: 0; }
+.brawler-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 23px; flex-shrink: 0; overflow: hidden; }
+.brawler-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+.brawler-icon.emoji-icon { font-size: 23px; }
 .brawler-name { font-family: 'Boogaloo', cursive; font-size: 1.12rem; letter-spacing: 0.5px; }
 .brawler-role { font-size: 0.67rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 700; }
 .level-badge { margin-left: auto; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 5px 9px; text-align: center; flex-shrink: 0; }
@@ -409,17 +411,116 @@ body::before {
 
 <script>
 // ─── Constants ────────────────────────────────────────────────────────────────
-const EMOJIS = {
-  'Shelly':'🎯','Nita':'🐻','Colt':'🔫','Bull':'💪','Brock':'🚀','El Primo':'👊',
-  'Barley':'🍺','Poco':'🎸','Rosa':'🌹','Jessie':'⚡','Dynamike':'💣','Tick':'⏰',
-  '8-Bit':'🕹','Rico':'🎰','Darryl':'🛢','Penny':'💰','Carl':'⛏','Jacky':'🔨',
-  'Gus':'👻','Bo':'🏹','Emz':'💀','Stu':'🛹','Piper':'🌹','Pam':'🔧','Frank':'🪨',
-  'Bibi':'🍬','Bea':'🐝','Nani':'🤖','Edgar':'🧲','Griff':'💳','Grom':'🌊',
-  'Bonnie':'🎶','Gale':'❄','Colette':'📱','Belle':'⚡','Ash':'🍖','Meg':'⚙',
-  'Lola':'🎭','Fang':'🐯','Eve':'🥚','Janet':'🎵','Otis':'🎨','Sam':'🥊',
-  'Max':'💨','Gene':'🔮','Tara':'🃏','Sprout':'🌱','Sandy':'🏖','Amber':'🔥',
-  'Crow':'🐦','Leon':'🌿','Spike':'🌵','Surge':'⚡','Mr. P':'🎩','Squeak':'💊',
-  'Lou':'🍦','Buzz':'🦈','Ruffs':'⭐'
+// Base URL for portraits (GitHub Pages serves from repo root)
+const PORTRAIT_BASE = '../assets/brawler_portraits'
+
+// Maps API brawler name → portrait filename (without _portrait.png)
+const PORTRAITS = {
+  '8-Bit':          '8bit',
+  'Alli':           'alli',
+  'Amber':          'amber',
+  'Angelo':         'angelo',
+  'Ash':            'ash',
+  'Barley':         'barley',
+  'Bea':            'bea',
+  'Belle':          'belle',
+  'Berry':          'berry',
+  'Bibi':           'bibi',
+  'Bo':             'bo',
+  'Bonnie':         'bonnie',
+  'Brock':          'brock',
+  'Bull':           'bull',
+  'Buster':         'buster',
+  'Buzz':           'buzz',
+  'Byron':          'byron',
+  'Carl':           'carl',
+  'Charlie':        'charlie',
+  'Chester':        'chester',
+  'Chuck':          'chuck',
+  'Clancy':         'clancy',
+  'Colette':        'colette',
+  'Colt':           'colt',
+  'Cordelius':      'cordelius',
+  'Crow':           'crow',
+  'Darryl':         'darryl',
+  'Doug':           'doug',
+  'Draco':          'draco',
+  'Dynamike':       'dynamike',
+  'Edgar':          'edgar',
+  'El Primo':       'elprimo',
+  'Emz':            'emz',
+  'Eve':            'eve',
+  'Fang':           'fang',
+  'Finx':           'finx',
+  'Frank':          'frank',
+  'Gale':           'gale',
+  'Gene':           'gene',
+  'Gigi':           'gigi',
+  'Glowbert':       'glowbert',
+  'Gray':           'gray',
+  'Griff':          'griff',
+  'Grom':           'grom',
+  'Gus':            'gus',
+  'Hank':           'hank',
+  'Jacky':          'jacky',
+  'Jae-Yong':       'jae-yong',
+  'Janet':          'janet',
+  'Jessie':         'jessie',
+  'Juju':           'juju',
+  'Kaze':           'kaze',
+  'Kenji':          'kenji',
+  'Kit':            'kit',
+  'Larry & Lawrie': 'larry&lawrie',
+  'Leon':           'leon',
+  'Lily':           'lily',
+  'Lola':           'lola',
+  'Lou':            'lou',
+  'Lumi':           'lumi',
+  'Maisie':         'maisie',
+  'Mandy':          'mandy',
+  'Max':            'max',
+  'Meeple':         'meeple',
+  'Meg':            'meg',
+  'Melodie':        'melodie',
+  'Mico':           'mico',
+  'Mina':           'mina',
+  'Moe':            'moe',
+  'Mortis':         'mortis',
+  'Mr. P':          'mrp',
+  'Nani':           'nani',
+  'Nita':           'nita',
+  'Ollie':          'ollie',
+  'Otis':           'otis',
+  'Pam':            'pam',
+  'Pearl':          'pearl',
+  'Penny':          'penny',
+  'Pierce':         'pierce',
+  'Piper':          'piper',
+  'Poco':           'poco',
+  'Rico':           'rico',
+  'Rosa':           'rosa',
+  'R-T':            'rt',
+  'Ruffs':          'ruffs',
+  'Sam':            'sam',
+  'Sandy':          'sandy',
+  'Shade':          'shade',
+  'Shelly':         'Shelly',
+  'Spike':          'spike',
+  'Sprout':         'sprout',
+  'Squeak':         'squeak',
+  'Stu':            'stu',
+  'Surge':          'surge',
+  'Tara':           'tara',
+  'Tick':           'tick',
+  'Trunk':          'trunk',
+  'Willow':         'willow',
+  'Ziggy':          'ziggy',
+}
+
+function getPortrait(name) {
+  const key = PORTRAITS[name]
+  if (!key) return null
+  return `${PORTRAIT_BASE}/${key}_portrait.png`
 }
 
 // Gold cost to go from level X to X+1
@@ -671,7 +772,7 @@ function renderBrawlers() {
 
 function buildCard(b, idx, maxT) {
   const rc  = (b.rarity||'default').replace(/\s+/g,'-')
-  const em  = EMOJIS[b.name]||'⭐'
+  const portraitUrl = getPortrait(b.name)
   const pct = Math.min(100,((b.trophies||0)/maxT)*100).toFixed(1)
   const lvl = b.power||1
   const d   = Math.min(idx*30,600)
@@ -682,7 +783,11 @@ function buildCard(b, idx, maxT) {
   return `<div class="brawler-card" style="animation-delay:${d}ms">
     <div class="card-header">
       <div class="rarity-strip rarity-${rc}"></div>
-      <div class="brawler-icon icon-bg-${rc}">${em}</div>
+      <div class="brawler-icon icon-bg-${rc}">
+        ${portraitUrl
+          ? `<img src="${portraitUrl}" alt="${b.name}" loading="lazy" onerror="this.parentElement.innerHTML='⭐'">`
+          : `<span>⭐</span>`}
+      </div>
       <div><div class="brawler-name">${b.name}</div><div class="brawler-role">${b.rarity||'Unknown'}</div></div>
       <div class="level-badge"><div class="lvl-num lvl-${lvl}">${lvl}</div><div class="lvl-label">Power</div></div>
     </div>
