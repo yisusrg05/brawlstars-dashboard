@@ -417,7 +417,7 @@ body::before {
 <script>
 // ─── Constants ────────────────────────────────────────────────────────────────
 // Base URL for portraits (GitHub Pages serves from repo root)
-const ASSET_BASE    = window.location.pathname.replace(/\/frontend\/.*$/, '')
+const ASSET_BASE    = window.location.pathname.replace(/\/\/.*$/, '')
 const PORTRAIT_BASE = ASSET_BASE + '/assets/brawler_portraits'
 
 // Maps API brawler name → portrait filename (without _portrait.png)
@@ -555,7 +555,7 @@ const PROXY = 'https://brawlstars-dashboard.onrender.com'
 let rarityJSONReady = false
 async function loadRarityJSON() {
   try {
-    const base = window.location.pathname.replace(/\/frontend\/.*$/, '')
+    const base = window.location.pathname.replace(/\/\/.*$/, '')
     const res = await fetch(base + '/assets/brawler_rarities.json', { cache: 'no-cache' })
     if (!res.ok) throw new Error('Could not load rarities')
     const data = await res.json()
