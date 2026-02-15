@@ -311,37 +311,29 @@ body::before {
   <div class="page" id="page-connection">
     <div class="page-header">
       <div class="page-title">Conexión</div>
-      <div class="page-subtitle">Configura tu API Token, Player Tag y la URL del backend</div>
+      <div class="page-subtitle">Introduce tu Player Tag para cargar tus datos</div>
     </div>
     <div class="config-card">
-      <div class="config-card-title">🔑 Credenciales de la API</div>
+      <div class="config-card-title">🎮 Tu cuenta de Brawl Stars</div>
       <div class="fields-row">
-        <div class="input-group">
-          <label>API Token</label>
-          <input type="password" id="apiToken" placeholder="eyJ0eXAiOiJKV1..." />
-        </div>
-        <div class="input-group" style="max-width:200px">
+        <div class="input-group" style="max-width:240px">
           <label>Player Tag</label>
           <input type="text" id="playerTag" placeholder="#2PP00" />
         </div>
         <button class="btn btn-primary" onclick="fetchPlayer()">🔍 Buscar</button>
       </div>
       <div class="proxy-row">
-        <div class="input-group">
-          <label>URL del Backend (Render)</label>
-          <input type="text" id="proxyUrl" placeholder="https://tu-app.onrender.com" />
-        </div>
-        <button class="btn btn-ghost" onclick="testProxy()">Probar conexión</button>
-        <div class="proxy-status">
+        <div class="proxy-status" style="padding-bottom:0; gap:10px">
           <div class="dot" id="proxyDot"></div>
-          <span id="proxyStatusText">Sin probar</span>
+          <span id="proxyStatusText">Backend: brawlstars-dashboard.onrender.com</span>
+          <button class="btn btn-ghost" style="padding:7px 14px;font-size:0.8rem" onclick="testProxy()">Probar conexión</button>
         </div>
       </div>
     </div>
     <div id="stateIdle" class="state-box">
       <div class="icon">🔌</div>
       <h3>Sin datos todavía</h3>
-      <p>Introduce tu API Token y Player Tag y pulsa Buscar para cargar tus datos.</p>
+      <p>Introduce tu Player Tag y pulsa Buscar para cargar tus datos.</p>
     </div>
     <div id="stateLoading" class="state-box" style="display:none">
       <div class="spinner"></div>
@@ -449,14 +441,15 @@ function goTo(page) {
   document.getElementById('nav-' + page).classList.add('active')
 }
 
-// ─── Persist config ───────────────────────────────────────────────────────────
+// ─── Hardcoded backend (no config needed) ────────────────────────────────────
+const PROXY = 'https://brawlstars-dashboard.onrender.com'
+
 window.addEventListener('load', () => {
   const saved = localStorage.getItem('bs_config')
   if (saved) {
     try {
       const cfg = JSON.parse(saved)
-      if (cfg.tag)   document.getElementById('playerTag').value = cfg.tag
-      if (cfg.proxy) document.getElementById('proxyUrl').value  = cfg.proxy
+      if (cfg.tag) document.getElementById('playerTag').value = cfg.tag
     } catch {}
   }
   goTo('dashboard')
@@ -464,31 +457,24 @@ window.addEventListener('load', () => {
 
 function saveConfig() {
   localStorage.setItem('bs_config', JSON.stringify({
-    tag:   document.getElementById('playerTag').value,
-    proxy: document.getElementById('proxyUrl').value,
+    tag: document.getElementById('playerTag').value,
   }))
 }
 
 // ─── Proxy test ───────────────────────────────────────────────────────────────
 async function testProxy() {
-  const proxy = document.getElementById('proxyUrl').value.trim().replace(/\/$/, '')
   const dot = document.getElementById('proxyDot'), txt = document.getElementById('proxyStatusText')
-  if (!proxy) { alert('Introduce primero la URL del backend.'); return }
   dot.className = 'dot'; txt.textContent = 'Probando...'
   try {
-    const res = await fetch(`${proxy}/`, { signal: AbortSignal.timeout(8000) })
-    if (res.ok) { dot.className = 'dot green'; txt.textContent = 'Conectado ✓' }
+    const res = await fetch(`${PROXY}/`, { signal: AbortSignal.timeout(8000) })
+    if (res.ok) { dot.className = 'dot green'; txt.textContent = 'Conectado ✓ — brawlstars-dashboard.onrender.com' }
     else throw new Error(`HTTP ${res.status}`)
   } catch(e) { dot.className = 'dot red'; txt.textContent = 'Error: ' + e.message }
 }
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
 async function fetchPlayer() {
-  const token  = document.getElementById('apiToken').value.trim()
   const rawTag = document.getElementById('playerTag').value.trim()
-  const proxy  = document.getElementById('proxyUrl').value.trim().replace(/\/$/, '')
-  if (!proxy)  { goTo('connection'); alert('Introduce la URL del backend.'); return }
-  if (!token)  { goTo('connection'); alert('Introduce tu API Token.'); return }
   if (!rawTag) { goTo('connection'); alert('Introduce el Player Tag.'); return }
   saveConfig()
   const tag = rawTag.startsWith('#') ? rawTag.slice(1) : rawTag
@@ -496,11 +482,10 @@ async function fetchPlayer() {
   document.getElementById('stateLoading').style.display = 'block'
   document.getElementById('stateError').style.display   = 'none'
   goTo('connection')
-  const headers = { 'Authorization': `Bearer ${token}` }
   try {
     const [pRes, bRes] = await Promise.all([
-      fetch(`${proxy}/player/${tag}`, { headers }),
-      fetch(`${proxy}/brawlers`,      { headers }),
+      fetch(`${PROXY}/player/${tag}`),
+      fetch(`${PROXY}/brawlers`),
     ])
     if (!pRes.ok) { const e = await pRes.json().catch(()=>({})); throw new Error(e.error || `HTTP ${pRes.status}`) }
     playerData = await pRes.json()
