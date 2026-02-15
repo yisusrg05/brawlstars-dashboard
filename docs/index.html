@@ -391,11 +391,13 @@ body::before {
       <div class="filters">
         <span class="filter-label">Rareza</span>
         <button class="filter-btn active" onclick="setFilter('all',this)">Todos</button>
+        <button class="filter-btn" onclick="setFilter('Ultra Legendary',this)">Ultra Legendary</button>
         <button class="filter-btn" onclick="setFilter('Legendary',this)">Legendary</button>
         <button class="filter-btn" onclick="setFilter('Mythic',this)">Mythic</button>
         <button class="filter-btn" onclick="setFilter('Epic',this)">Epic</button>
         <button class="filter-btn" onclick="setFilter('Super Rare',this)">Super Rare</button>
         <button class="filter-btn" onclick="setFilter('Rare',this)">Rare</button>
+        <button class="filter-btn" onclick="setFilter('Common',this)">Common</button>
         <select class="sort-select" id="sortSelect" onchange="renderBrawlers()">
           <option value="trophies">Trofeos ↓</option>
           <option value="level">Nivel ↓</option>
@@ -526,12 +528,12 @@ function getPortrait(name) {
 // Gold cost to go from level X to X+1
 const GOLD_PER_LEVEL = [0, 20, 35, 75, 140, 290, 480, 800, 1250, 1875, 2800]
 // Power points needed to go from level X to X+1 (index = from level)
-const PP_PER_LEVEL   = [0, 20, 30, 50,  80, 130, 210, 340,  550,  890,    0]
+const PP_PER_LEVEL   = [0, 20, 30, 50,  80, 130, 210, 340,  550,  890, 1440] // lv10→11 costs 1440 PP
 const GADGET_COST    = 1000
 const STARPOWER_COST = 2000
 
 // ─── State ────────────────────────────────────────────────────────────────────
-let allBrawlers = [], rarityMap = {}, gadgetCountMap = {}, spCountMap = {}
+let allBrawlers = [], rarityMap = {}, gadgetCountMap = {}, spCountMap = {}, rarityJSON = {}
 let currentFilter = 'all', playerData = null
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
@@ -545,7 +547,24 @@ function goTo(page) {
 // ─── Hardcoded backend (no config needed) ────────────────────────────────────
 const PROXY = 'https://brawlstars-dashboard.onrender.com'
 
-window.addEventListener('load', () => {
+// ─── Load rarity JSON from repo ──────────────────────────────────────────────
+async function loadRarityJSON() {
+  try {
+    const res = await fetch('../assets/brawler_rarities.json')
+    if (!res.ok) throw new Error('Could not load rarities')
+    const data = await res.json()
+    // Flatten { "Legendary": ["Spike", ...] } → { "Spike": "Legendary", ... }
+    for (const [rarity, names] of Object.entries(data)) {
+      for (const name of names) rarityJSON[name] = rarity
+    }
+    console.log(`✅ Loaded ${Object.keys(rarityJSON).length} brawler rarities`)
+  } catch(e) {
+    console.warn('Could not load brawler_rarities.json:', e.message)
+  }
+}
+
+window.addEventListener('load', async () => {
+  await loadRarityJSON()
   const saved = localStorage.getItem('bs_config')
   if (saved) {
     try {
@@ -600,7 +619,7 @@ async function fetchPlayer() {
     window._totalInGame = (meta.items || []).length || 80
     allBrawlers = (playerData.brawlers || []).map(b => ({
       ...b,
-      rarity:       rarityMap[b.name]      || 'default',
+      rarity:       rarityMap[b.name] || rarityJSON[b.name] || 'Unknown',
       totalGadgets: gadgetCountMap[b.name] ?? 2,
       totalSP:      spCountMap[b.name]     ?? 2,
     }))
@@ -629,7 +648,7 @@ function goldToMax(lvl) {
   let t = 0; for (let i = lvl; i < 11; i++) t += GOLD_PER_LEVEL[i]; return t
 }
 function ppToMax(lvl) {
-  let t = 0; for (let i = lvl; i < 10; i++) t += PP_PER_LEVEL[i]; return t
+  let t = 0; for (let i = lvl; i < 11; i++) t += PP_PER_LEVEL[i]; return t
 }
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
