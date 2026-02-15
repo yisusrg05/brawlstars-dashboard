@@ -198,8 +198,8 @@ body::before {
 .brawler-card:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.14); }
 .card-header { padding: 15px 17px 12px; display: flex; align-items: center; gap: 12px; position: relative; border-bottom: 1px solid var(--border); }
 .rarity-strip { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-.brawler-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 23px; flex-shrink: 0; overflow: hidden; }
-.brawler-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+.brawler-icon { width: 58px; height: 58px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; overflow: hidden; }
+.brawler-icon img { width: 100%; height: 100%; object-fit: cover; object-position: top center; border-radius: 12px; display: block; }
 .brawler-icon.emoji-icon { font-size: 23px; }
 .brawler-name { font-family: 'Boogaloo', cursive; font-size: 1.12rem; letter-spacing: 0.5px; }
 .brawler-role { font-size: 0.67rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 700; }
@@ -227,21 +227,24 @@ body::before {
 .type-gear   { background: rgba(0,229,255,0.12);   color: var(--accent3); }
 .no-upgrades { color: var(--muted); font-size: 0.74rem; font-style: italic; }
 
-/* Rarity */
-.rarity-Legendary  { background: linear-gradient(90deg,#ffcc00,#ff8800); }
-.rarity-Mythic     { background: linear-gradient(90deg,#ff4466,#cc0033); }
-.rarity-Epic       { background: linear-gradient(90deg,#cc44ff,#8800cc); }
-.rarity-Super-Rare { background: linear-gradient(90deg,#0088ff,#0055cc); }
-.rarity-Rare       { background: linear-gradient(90deg,#00d084,#00a060); }
-.rarity-Trophy     { background: linear-gradient(90deg,#4db8ff,#0080ff); }
-.rarity-default    { background: linear-gradient(90deg,#555,#333); }
-.icon-bg-Legendary  { background: rgba(255,204,0,0.15); }
-.icon-bg-Mythic     { background: rgba(255,68,102,0.15); }
-.icon-bg-Epic       { background: rgba(204,68,255,0.15); }
-.icon-bg-Super-Rare { background: rgba(0,136,255,0.15); }
-.icon-bg-Rare       { background: rgba(0,208,132,0.15); }
-.icon-bg-Trophy     { background: rgba(77,184,255,0.15); }
-.icon-bg-default    { background: rgba(100,100,100,0.12); }
+/* Rarity strips */
+.rarity-Ultra-Legendary { background: linear-gradient(90deg,#ff2020,#ff6600); }
+.rarity-Legendary       { background: linear-gradient(90deg,#ffcc00,#ff8800); }
+.rarity-Mythic          { background: linear-gradient(90deg,#ff4466,#cc0033); }
+.rarity-Epic            { background: linear-gradient(90deg,#cc44ff,#8800cc); }
+.rarity-Super-Rare      { background: linear-gradient(90deg,#0088ff,#0055cc); }
+.rarity-Rare            { background: linear-gradient(90deg,#00d084,#00a060); }
+.rarity-Common          { background: linear-gradient(90deg,#aaaaaa,#777777); }
+.rarity-default         { background: linear-gradient(90deg,#555,#333); }
+.icon-bg-Ultra-Legendary { background: rgba(255,50,50,0.2); }
+.icon-bg-Legendary       { background: rgba(255,204,0,0.15); }
+.icon-bg-Mythic          { background: rgba(255,68,102,0.15); }
+.icon-bg-Epic            { background: rgba(204,68,255,0.15); }
+.icon-bg-Super-Rare      { background: rgba(0,136,255,0.15); }
+.icon-bg-Rare            { background: rgba(0,208,132,0.15); }
+.icon-bg-Common          { background: rgba(180,180,180,0.12); }
+.icon-bg-default         { background: rgba(100,100,100,0.12); }
+.icon-bg-Unknown         { background: rgba(100,100,100,0.12); }
 
 /* STATES */
 .state-box { text-align: center; padding: 70px 20px; color: var(--muted); }
@@ -414,7 +417,8 @@ body::before {
 <script>
 // ─── Constants ────────────────────────────────────────────────────────────────
 // Base URL for portraits (GitHub Pages serves from repo root)
-const PORTRAIT_BASE = '../assets/brawler_portraits'
+const ASSET_BASE    = window.location.pathname.replace(/\/frontend\/.*$/, '')
+const PORTRAIT_BASE = ASSET_BASE + '/assets/brawler_portraits'
 
 // Maps API brawler name → portrait filename (without _portrait.png)
 const PORTRAITS = {
@@ -548,15 +552,18 @@ function goTo(page) {
 const PROXY = 'https://brawlstars-dashboard.onrender.com'
 
 // ─── Load rarity JSON from repo ──────────────────────────────────────────────
+let rarityJSONReady = false
 async function loadRarityJSON() {
   try {
-    const res = await fetch('../assets/brawler_rarities.json')
+    const base = window.location.pathname.replace(/\/frontend\/.*$/, '')
+    const res = await fetch(base + '/assets/brawler_rarities.json', { cache: 'no-cache' })
     if (!res.ok) throw new Error('Could not load rarities')
     const data = await res.json()
     // Flatten { "Legendary": ["Spike", ...] } → { "Spike": "Legendary", ... }
     for (const [rarity, names] of Object.entries(data)) {
       for (const name of names) rarityJSON[name] = rarity
     }
+    rarityJSONReady = true
     console.log(`✅ Loaded ${Object.keys(rarityJSON).length} brawler rarities`)
   } catch(e) {
     console.warn('Could not load brawler_rarities.json:', e.message)
@@ -790,7 +797,7 @@ function renderBrawlers() {
 }
 
 function buildCard(b, idx, maxT) {
-  const rc  = (b.rarity||'default').replace(/\s+/g,'-')
+  const rc  = (b.rarity && b.rarity !== 'Unknown' ? b.rarity : 'default').replace(/\s+/g,'-')
   const portraitUrl = getPortrait(b.name)
   const pct = Math.min(100,((b.trophies||0)/maxT)*100).toFixed(1)
   const lvl = b.power||1
