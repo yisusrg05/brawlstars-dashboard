@@ -6,603 +6,417 @@
 <title>Brawl Stars Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0d0d1a;
-    --surface: #13132b;
-    --surface2: #1a1a38;
-    --accent: #f9c400;
-    --accent2: #ff6b35;
-    --accent3: #00e5ff;
-    --purple: #9b5de5;
-    --green: #00f593;
-    --red: #ff3860;
-    --text: #e8e8ff;
-    --muted: #7070a0;
-    --border: rgba(255,255,255,0.07);
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Nunito', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 10% 20%, rgba(155,93,229,0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 90% 80%, rgba(249,196,0,0.08) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0,229,255,0.04) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 24px 60px; }
-
-  header {
-    display: flex; align-items: center; gap: 16px;
-    padding: 32px 0 24px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 36px;
-  }
-
-  .logo {
-    width: 52px; height: 52px;
-    background: var(--accent);
-    border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px;
-    box-shadow: 0 0 20px rgba(249,196,0,0.4);
-    flex-shrink: 0;
-  }
-
-  header h1 {
-    font-family: 'Boogaloo', cursive;
-    font-size: 2.2rem;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: 1px;
-  }
-
-  header p { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
-
-  /* Config panel */
-  .config-panel {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 18px;
-    padding: 24px;
-    margin-bottom: 24px;
-  }
-
-  .config-title {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--muted);
-    font-weight: 700;
-    margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
-  }
-
-  .search-section { display: flex; gap: 12px; flex-wrap: wrap; }
-
-  .input-group { flex: 1; min-width: 200px; }
-  .input-group label {
-    display: block;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--muted);
-    margin-bottom: 8px;
-    font-weight: 700;
-  }
-
-  .input-group input {
-    width: 100%;
-    background: var(--surface2);
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 12px 16px;
-    color: var(--text);
-    font-family: 'Nunito', sans-serif;
-    font-size: 0.95rem;
-    transition: all 0.25s;
-    outline: none;
-  }
-
-  .input-group input::placeholder { color: var(--muted); }
-  .input-group input:focus {
-    border-color: var(--accent3);
-    box-shadow: 0 0 0 3px rgba(0,229,255,0.1);
-  }
-
-  .proxy-row {
-    display: flex; align-items: flex-end; gap: 12px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
-    margin-top: 16px;
-    flex-wrap: wrap;
-  }
-
-  .proxy-row .input-group { flex: 2; }
-
-  .proxy-status {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 0.8rem;
-    color: var(--muted);
-    padding-bottom: 12px;
-    flex-shrink: 0;
-  }
-
-  .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--muted);
-    transition: background 0.3s;
-  }
-
-  .dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .dot.red { background: var(--red); box-shadow: 0 0 6px var(--red); }
-
-  .btn {
-    padding: 12px 24px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    font-family: 'Boogaloo', cursive;
-    font-size: 1.05rem;
-    letter-spacing: 0.5px;
-    transition: all 0.2s;
-    display: flex; align-items: center; gap: 8px;
-    align-self: flex-end;
-    white-space: nowrap;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #1a0a00;
-    box-shadow: 0 4px 20px rgba(249,196,0,0.3);
-  }
-
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(249,196,0,0.4); }
-  .btn-primary:active { transform: translateY(0); }
-
-  .btn-ghost {
-    background: transparent;
-    border: 1.5px solid var(--border);
-    color: var(--muted);
-  }
-
-  .btn-ghost:hover { border-color: var(--accent3); color: var(--accent3); }
-
-  /* Player card */
-  .player-card {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 20px;
-    padding: 28px 32px;
-    margin-bottom: 28px;
-    display: none;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .player-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--purple));
-  }
-
-  .player-meta { display: flex; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
-
-  .player-avatar {
-    width: 72px; height: 72px;
-    background: linear-gradient(135deg, var(--purple), var(--accent3));
-    border-radius: 18px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 36px;
-    flex-shrink: 0;
-  }
-
-  .player-info h2 {
-    font-family: 'Boogaloo', cursive;
-    font-size: 1.8rem;
-    color: var(--accent);
-  }
-
-  .player-tag { color: var(--muted); font-size: 0.85rem; margin: 2px 0 10px; }
-
-  .stat-pills { display: flex; gap: 10px; flex-wrap: wrap; }
-
-  .pill {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 50px;
-    padding: 6px 14px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    display: flex; align-items: center; gap: 6px;
-  }
-
-  .pill .val { color: var(--accent3); }
-  .pill .val.gold { color: var(--accent); }
-  .pill .val.green { color: var(--green); }
-
-  /* Filters */
-  .filters {
-    display: none;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .filter-label {
-    color: var(--muted);
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .filter-btn {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 50px;
-    padding: 6px 14px;
-    color: var(--muted);
-    font-family: 'Nunito', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .filter-btn:hover, .filter-btn.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #1a0a00;
-  }
-
-  .sort-select {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 50px;
-    padding: 6px 14px;
-    color: var(--text);
-    font-family: 'Nunito', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 700;
-    cursor: pointer;
-    outline: none;
-    margin-left: auto;
-  }
-
-  .brawler-count {
-    color: var(--muted);
-    font-size: 0.82rem;
-    margin-bottom: 18px;
-    display: none;
-  }
-
-  .brawler-count span { color: var(--accent3); font-weight: 800; }
-
-  /* Brawler grid */
-  .brawlers-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 18px;
-  }
-
-  .brawler-card {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 18px;
-    overflow: hidden;
-    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
-    animation: fadeUp 0.4s ease both;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .brawler-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 14px 36px rgba(0,0,0,0.4);
-    border-color: rgba(255,255,255,0.14);
-  }
-
-  .card-header {
-    padding: 18px 20px 14px;
-    display: flex; align-items: center; gap: 14px;
-    position: relative;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .rarity-strip {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-  }
-
-  .brawler-icon {
-    width: 50px; height: 50px;
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px;
-    flex-shrink: 0;
-  }
-
-  .brawler-name {
-    font-family: 'Boogaloo', cursive;
-    font-size: 1.2rem;
-    letter-spacing: 0.5px;
-    line-height: 1.2;
-  }
-
-  .brawler-role {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--muted);
-    font-weight: 700;
-  }
-
-  .level-badge {
-    margin-left: auto;
-    background: var(--surface2);
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    padding: 6px 10px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  .lvl-num {
-    font-family: 'Boogaloo', cursive;
-    font-size: 1.4rem;
-    line-height: 1;
-  }
-
-  .lvl-label {
-    font-size: 0.58rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--muted);
-  }
-
-  .lvl-1,.lvl-2,.lvl-3 { color: #888; }
-  .lvl-4,.lvl-5,.lvl-6 { color: var(--green); }
-  .lvl-7,.lvl-8,.lvl-9 { color: var(--accent3); }
-  .lvl-10,.lvl-11 { color: var(--accent); text-shadow: 0 0 8px rgba(249,196,0,0.5); }
-
-  .card-body { padding: 14px 18px 16px; }
-
-  .trophy-row {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 12px;
-  }
-
-  .trophy-bar-bg {
-    flex: 1;
-    height: 6px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 50px;
-    overflow: hidden;
-  }
-
-  .trophy-bar-fill {
-    height: 100%;
-    border-radius: 50px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    transition: width 1s cubic-bezier(0.22,1,0.36,1);
-  }
-
-  .trophy-val {
-    font-size: 0.85rem;
-    font-weight: 800;
-    color: var(--accent);
-    min-width: 50px;
-    text-align: right;
-  }
-
-  .upgrades-section { margin-top: 10px; }
-
-  .upg-title {
-    font-size: 0.66rem;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--muted);
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-
-  .upg-list { display: flex; flex-direction: column; gap: 5px; }
-
-  .upg-item {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 7px 11px;
-    display: flex; align-items: center; gap: 8px;
-    font-size: 0.8rem;
-    font-weight: 600;
-  }
-
-  .upg-icon { font-size: 0.95rem; flex-shrink: 0; }
-  .upg-name { flex: 1; }
-
-  .upg-type {
-    font-size: 0.62rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 2px 7px;
-    border-radius: 50px;
-    font-weight: 800;
-    flex-shrink: 0;
-  }
-
-  .type-gadget { background: rgba(155,93,229,0.2); color: var(--purple); }
-  .type-star   { background: rgba(249,196,0,0.15); color: var(--accent); }
-  .type-gear   { background: rgba(0,229,255,0.12); color: var(--accent3); }
-
-  .no-upgrades { color: var(--muted); font-size: 0.76rem; font-style: italic; }
-
-  /* Rarity strips */
-  .rarity-Legendary   { background: linear-gradient(90deg,#ffcc00,#ff8800); }
-  .rarity-Mythic      { background: linear-gradient(90deg,#ff4466,#cc0033); }
-  .rarity-Epic        { background: linear-gradient(90deg,#cc44ff,#8800cc); }
-  .rarity-Super-Rare  { background: linear-gradient(90deg,#0088ff,#0055cc); }
-  .rarity-Rare        { background: linear-gradient(90deg,#00d084,#00a060); }
-  .rarity-Trophy      { background: linear-gradient(90deg,#4db8ff,#0080ff); }
-  .rarity-default     { background: linear-gradient(90deg,#555,#333); }
-
-  .icon-bg-Legendary  { background: rgba(255,204,0,0.15); }
-  .icon-bg-Mythic     { background: rgba(255,68,102,0.15); }
-  .icon-bg-Epic       { background: rgba(204,68,255,0.15); }
-  .icon-bg-Super-Rare { background: rgba(0,136,255,0.15); }
-  .icon-bg-Rare       { background: rgba(0,208,132,0.15); }
-  .icon-bg-Trophy     { background: rgba(77,184,255,0.15); }
-  .icon-bg-default    { background: rgba(100,100,100,0.12); }
-
-  /* States */
-  .state-box {
-    text-align: center;
-    padding: 80px 20px;
-    color: var(--muted);
-    display: none;
-  }
-
-  .state-box .icon { font-size: 3.5rem; margin-bottom: 16px; }
-  .state-box h3 { font-family: 'Boogaloo', cursive; font-size: 1.5rem; color: var(--text); margin-bottom: 8px; }
-  .state-box p { font-size: 0.88rem; max-width: 360px; margin: 0 auto; line-height: 1.6; }
-
-  .spinner {
-    width: 44px; height: 44px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    margin: 0 auto 20px;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  @media (max-width: 640px) {
-    .brawlers-grid { grid-template-columns: 1fr; }
-    .search-section { flex-direction: column; }
-    .btn { justify-content: center; }
-    .sort-select { margin-left: 0; }
-    header h1 { font-size: 1.7rem; }
-  }
+:root {
+  --bg: #0d0d1a;
+  --surface: #13132b;
+  --surface2: #1a1a38;
+  --accent: #f9c400;
+  --accent2: #ff6b35;
+  --accent3: #00e5ff;
+  --purple: #9b5de5;
+  --green: #00f593;
+  --red: #ff3860;
+  --text: #e8e8ff;
+  --muted: #7070a0;
+  --border: rgba(255,255,255,0.07);
+  --sidebar-w: 220px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  min-height: 100vh; display: flex; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 5% 15%, rgba(155,93,229,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 95% 85%, rgba(249,196,0,0.07) 0%, transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w); min-height: 100vh;
+  background: var(--surface); border-right: 1.5px solid var(--border);
+  display: flex; flex-direction: column;
+  position: fixed; left: 0; top: 0; bottom: 0; z-index: 100;
+}
+.sidebar-logo {
+  display: flex; align-items: center; gap: 12px;
+  padding: 26px 20px 22px; border-bottom: 1px solid var(--border);
+}
+.logo-icon {
+  width: 40px; height: 40px; background: var(--accent);
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; box-shadow: 0 0 16px rgba(249,196,0,0.35); flex-shrink: 0;
+}
+.logo-text {
+  font-family: 'Boogaloo', cursive; font-size: 1.1rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.logo-sub { font-size: 0.63rem; color: var(--muted); font-weight: 600; }
+.sidebar-player {
+  padding: 14px 20px; border-bottom: 1px solid var(--border); display: none;
+}
+.sp-name { font-family: 'Boogaloo', cursive; font-size: 1rem; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-tag  { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
+.sp-trophies { display: flex; align-items: center; gap: 5px; margin-top: 7px; font-size: 0.8rem; font-weight: 700; color: var(--accent); }
+.sidebar-nav { flex: 1; padding: 14px 12px; display: flex; flex-direction: column; gap: 3px; }
+.nav-section-label { font-size: 0.61rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 700; padding: 8px 8px 3px; margin-top: 6px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 12px; cursor: pointer;
+  transition: all 0.2s; font-size: 0.87rem; font-weight: 700;
+  color: var(--muted); border: 1.5px solid transparent; user-select: none;
+}
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: rgba(249,196,0,0.1); border-color: rgba(249,196,0,0.2); color: var(--accent); }
+.nav-icon { font-size: 1.1rem; flex-shrink: 0; width: 22px; text-align: center; }
+.sidebar-footer { padding: 14px 18px; border-top: 1px solid var(--border); }
+.refresh-btn {
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 9px; color: var(--muted);
+  font-family: 'Nunito', sans-serif; font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.refresh-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+
+/* MAIN */
+.main { margin-left: var(--sidebar-w); flex: 1; position: relative; z-index: 1; min-height: 100vh; }
+.page { display: none; padding: 36px 36px 60px; max-width: 1200px; animation: fadeIn 0.3s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.page-header { margin-bottom: 30px; }
+.page-title {
+  font-family: 'Boogaloo', cursive; font-size: 2rem;
+  background: linear-gradient(135deg, var(--text), var(--muted));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.page-subtitle { color: var(--muted); font-size: 0.84rem; margin-top: 4px; }
+
+/* CONNECTION PAGE */
+.config-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 18px; padding: 26px; margin-bottom: 18px;
+  position: relative; overflow: hidden;
+}
+.config-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent3), var(--purple));
+}
+.config-card-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 700; margin-bottom: 18px; }
+.fields-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.input-group { flex: 1; min-width: 200px; }
+.input-group label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 7px; font-weight: 700; }
+.input-group input {
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 12px 15px; color: var(--text);
+  font-family: 'Nunito', sans-serif; font-size: 0.94rem; transition: all 0.25s; outline: none;
+}
+.input-group input::placeholder { color: var(--muted); }
+.input-group input:focus { border-color: var(--accent3); box-shadow: 0 0 0 3px rgba(0,229,255,0.1); }
+.proxy-row { display: flex; align-items: flex-end; gap: 12px; padding-top: 18px; border-top: 1px solid var(--border); margin-top: 18px; flex-wrap: wrap; }
+.proxy-status { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted); padding-bottom: 12px; flex-shrink: 0; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); transition: background 0.3s; }
+.dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot.red   { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+.btn {
+  padding: 12px 22px; border-radius: 12px; border: none; cursor: pointer;
+  font-family: 'Boogaloo', cursive; font-size: 1rem; letter-spacing: 0.5px;
+  transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+  align-self: flex-end; white-space: nowrap;
+}
+.btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #1a0a00; box-shadow: 0 4px 18px rgba(249,196,0,0.3); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(249,196,0,0.4); }
+.btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--muted); }
+.btn-ghost:hover { border-color: var(--accent3); color: var(--accent3); }
+
+/* PLAYER BANNER */
+.player-banner {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 22px 26px; margin-bottom: 26px;
+  display: flex; align-items: center; gap: 18px;
+  position: relative; overflow: hidden; flex-wrap: wrap;
+}
+.player-banner::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2), var(--purple)); }
+.player-avatar { width: 60px; height: 60px; background: linear-gradient(135deg, var(--purple), var(--accent3)); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 30px; flex-shrink: 0; }
+.player-info h2 { font-family: 'Boogaloo', cursive; font-size: 1.65rem; color: var(--accent); }
+.player-tag { color: var(--muted); font-size: 0.8rem; margin: 2px 0 8px; }
+.stat-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 50px; padding: 5px 12px; font-size: 0.79rem; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+.pill .val { color: var(--accent3); }
+.pill .val.gold  { color: var(--accent); }
+.pill .val.green { color: var(--green); }
+
+/* STAT CARDS */
+.section-title { font-family: 'Boogaloo', cursive; font-size: 1.25rem; margin-bottom: 14px; color: var(--text); }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-bottom: 28px; }
+.stat-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 18px; padding: 20px 22px;
+  position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;
+}
+.stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.35); }
+.stat-card-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.stat-card-icon { font-size: 1.7rem; margin-bottom: 10px; display: block; }
+.stat-card-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
+.stat-card-main { display: flex; align-items: baseline; gap: 7px; margin-bottom: 10px; }
+.stat-card-value { font-family: 'Boogaloo', cursive; font-size: 2.3rem; line-height: 1; }
+.stat-card-total { font-size: 1rem; color: var(--muted); font-weight: 700; }
+.stat-progress-bg { height: 6px; background: rgba(255,255,255,0.06); border-radius: 50px; overflow: hidden; margin-bottom: 7px; }
+.stat-progress-fill { height: 100%; border-radius: 50px; transition: width 1.2s cubic-bezier(0.22,1,0.36,1); }
+.stat-progress-pct { font-size: 0.7rem; color: var(--muted); font-weight: 700; }
+
+/* COST CARDS */
+.cost-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.cost-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; padding: 22px 24px; position: relative; overflow: hidden; }
+.cost-card-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.cost-card-title { font-family: 'Boogaloo', cursive; font-size: 1.15rem; margin-bottom: 3px; }
+.cost-card-subtitle { font-size: 0.73rem; color: var(--muted); margin-bottom: 16px; }
+.cost-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.cost-row:last-child { border-bottom: none; }
+.cost-icon { font-size: 1.2rem; flex-shrink: 0; width: 26px; text-align: center; }
+.cost-label { flex: 1; font-size: 0.83rem; font-weight: 600; }
+.cost-value { font-family: 'Boogaloo', cursive; font-size: 1.25rem; }
+.cost-gold  { color: var(--accent); }
+.cost-power { color: var(--purple); }
+.cost-zero  { color: var(--green); }
+
+/* BRAWLERS PAGE */
+.filters { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
+.filter-label { color: var(--muted); font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.filter-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 50px; padding: 6px 13px; color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 0.79rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.filter-btn:hover, .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #1a0a00; }
+.sort-select { background: var(--surface); border: 1.5px solid var(--border); border-radius: 50px; padding: 6px 14px; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 0.79rem; font-weight: 700; cursor: pointer; outline: none; margin-left: auto; }
+.brawler-count { color: var(--muted); font-size: 0.81rem; margin-bottom: 14px; }
+.brawler-count span { color: var(--accent3); font-weight: 800; }
+.brawlers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)); gap: 15px; }
+.brawler-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; overflow: hidden; transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s; animation: fadeUp 0.4s ease both; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.brawler-card:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.14); }
+.card-header { padding: 15px 17px 12px; display: flex; align-items: center; gap: 12px; position: relative; border-bottom: 1px solid var(--border); }
+.rarity-strip { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.brawler-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 23px; flex-shrink: 0; }
+.brawler-name { font-family: 'Boogaloo', cursive; font-size: 1.12rem; letter-spacing: 0.5px; }
+.brawler-role { font-size: 0.67rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 700; }
+.level-badge { margin-left: auto; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 5px 9px; text-align: center; flex-shrink: 0; }
+.lvl-num { font-family: 'Boogaloo', cursive; font-size: 1.3rem; line-height: 1; }
+.lvl-label { font-size: 0.57rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+.lvl-1,.lvl-2,.lvl-3 { color: #888; }
+.lvl-4,.lvl-5,.lvl-6 { color: var(--green); }
+.lvl-7,.lvl-8,.lvl-9 { color: var(--accent3); }
+.lvl-10,.lvl-11 { color: var(--accent); text-shadow: 0 0 8px rgba(249,196,0,0.5); }
+.card-body { padding: 12px 15px 14px; }
+.trophy-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.trophy-bar-bg { flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 50px; overflow: hidden; }
+.trophy-bar-fill { height: 100%; border-radius: 50px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 1s cubic-bezier(0.22,1,0.36,1); }
+.trophy-val { font-size: 0.82rem; font-weight: 800; color: var(--accent); min-width: 46px; text-align: right; }
+.upgrades-section { margin-top: 8px; }
+.upg-title { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); font-weight: 700; margin-bottom: 5px; }
+.upg-list { display: flex; flex-direction: column; gap: 4px; }
+.upg-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 6px 10px; display: flex; align-items: center; gap: 7px; font-size: 0.78rem; font-weight: 600; }
+.upg-icon { font-size: 0.88rem; flex-shrink: 0; }
+.upg-name { flex: 1; }
+.upg-type { font-size: 0.59rem; text-transform: uppercase; letter-spacing: 1px; padding: 2px 6px; border-radius: 50px; font-weight: 800; flex-shrink: 0; }
+.type-gadget { background: rgba(155,93,229,0.2); color: var(--purple); }
+.type-star   { background: rgba(249,196,0,0.15);  color: var(--accent); }
+.type-gear   { background: rgba(0,229,255,0.12);   color: var(--accent3); }
+.no-upgrades { color: var(--muted); font-size: 0.74rem; font-style: italic; }
+
+/* Rarity */
+.rarity-Legendary  { background: linear-gradient(90deg,#ffcc00,#ff8800); }
+.rarity-Mythic     { background: linear-gradient(90deg,#ff4466,#cc0033); }
+.rarity-Epic       { background: linear-gradient(90deg,#cc44ff,#8800cc); }
+.rarity-Super-Rare { background: linear-gradient(90deg,#0088ff,#0055cc); }
+.rarity-Rare       { background: linear-gradient(90deg,#00d084,#00a060); }
+.rarity-Trophy     { background: linear-gradient(90deg,#4db8ff,#0080ff); }
+.rarity-default    { background: linear-gradient(90deg,#555,#333); }
+.icon-bg-Legendary  { background: rgba(255,204,0,0.15); }
+.icon-bg-Mythic     { background: rgba(255,68,102,0.15); }
+.icon-bg-Epic       { background: rgba(204,68,255,0.15); }
+.icon-bg-Super-Rare { background: rgba(0,136,255,0.15); }
+.icon-bg-Rare       { background: rgba(0,208,132,0.15); }
+.icon-bg-Trophy     { background: rgba(77,184,255,0.15); }
+.icon-bg-default    { background: rgba(100,100,100,0.12); }
+
+/* STATES */
+.state-box { text-align: center; padding: 70px 20px; color: var(--muted); }
+.state-box .icon { font-size: 3rem; margin-bottom: 13px; }
+.state-box h3 { font-family: 'Boogaloo', cursive; font-size: 1.4rem; color: var(--text); margin-bottom: 7px; }
+.state-box p { font-size: 0.86rem; max-width: 340px; margin: 0 auto; line-height: 1.6; }
+.spinner { width: 42px; height: 42px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 18px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 64px; }
+  .logo-text, .logo-sub, .nav-label, .sidebar-player, .nav-section-label { display: none; }
+  .nav-item { justify-content: center; padding: 12px; }
+  .sidebar-logo { justify-content: center; padding: 18px 10px; }
+  .page { padding: 22px 14px 48px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .brawlers-grid { grid-template-columns: 1fr; }
+  .refresh-btn span { display: none; }
+}
 </style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <div class="logo">⚡</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">⚡</div>
     <div>
-      <h1>Brawl Stars Dashboard</h1>
-      <p>Visualiza tus brawlers, niveles y habilidades</p>
-    </div>
-  </header>
-
-  <!-- Config panel -->
-  <div class="config-panel">
-    <div class="config-title">⚙️ Configuración</div>
-    <div class="search-section">
-      <div class="input-group">
-        <label>API Token</label>
-        <input type="password" id="apiToken" placeholder="eyJ0eXAiOiJKV1..." />
-      </div>
-      <div class="input-group" style="max-width:200px">
-        <label>Player Tag</label>
-        <input type="text" id="playerTag" placeholder="#2PP00" />
-      </div>
-      <button class="btn btn-primary" onclick="fetchPlayer()">
-        🔍 Buscar
-      </button>
-    </div>
-
-    <div class="proxy-row">
-      <div class="input-group">
-        <label>URL del Proxy / Backend</label>
-        <input type="text" id="proxyUrl" placeholder="https://tu-app.onrender.com" />
-      </div>
-      <button class="btn btn-ghost" onclick="testProxy()">Probar conexión</button>
-      <div class="proxy-status">
-        <div class="dot" id="proxyDot"></div>
-        <span id="proxyStatusText">Sin probar</span>
-      </div>
+      <div class="logo-text">Brawl Stats</div>
+      <div class="logo-sub">Dashboard</div>
     </div>
   </div>
 
-  <!-- Player info -->
-  <div class="player-card" id="playerCard">
-    <div class="player-meta">
-      <div class="player-avatar">🎮</div>
-      <div class="player-info">
-        <h2 id="playerName">—</h2>
-        <div class="player-tag" id="playerTagDisplay">—</div>
-        <div class="stat-pills" id="statPills"></div>
-      </div>
+  <div class="sidebar-player" id="sidebarPlayer">
+    <div class="sp-name" id="spName">—</div>
+    <div class="sp-tag"  id="spTag">—</div>
+    <div class="sp-trophies">🏆 <span id="spTrophies">—</span></div>
+  </div>
+
+  <div class="sidebar-nav">
+    <span class="nav-section-label">General</span>
+    <div class="nav-item" id="nav-dashboard" onclick="goTo('dashboard')">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-item" id="nav-brawlers" onclick="goTo('brawlers')">
+      <span class="nav-icon">🎮</span>
+      <span class="nav-label">Mis Brawlers</span>
+    </div>
+    <span class="nav-section-label">Ajustes</span>
+    <div class="nav-item" id="nav-connection" onclick="goTo('connection')">
+      <span class="nav-icon">🔌</span>
+      <span class="nav-label">Conexión</span>
     </div>
   </div>
 
-  <!-- Filters -->
-  <div class="filters" id="filtersBar">
-    <span class="filter-label">Rareza</span>
-    <button class="filter-btn active" onclick="setFilter('all',this)">Todos</button>
-    <button class="filter-btn" onclick="setFilter('Legendary',this)">Legendary</button>
-    <button class="filter-btn" onclick="setFilter('Mythic',this)">Mythic</button>
-    <button class="filter-btn" onclick="setFilter('Epic',this)">Epic</button>
-    <button class="filter-btn" onclick="setFilter('Super Rare',this)">Super Rare</button>
-    <button class="filter-btn" onclick="setFilter('Rare',this)">Rare</button>
-    <select class="sort-select" id="sortSelect" onchange="renderBrawlers()">
-      <option value="trophies">Ordenar: Trofeos ↓</option>
-      <option value="level">Ordenar: Nivel ↓</option>
-      <option value="name">Ordenar: Nombre A-Z</option>
-    </select>
+  <div class="sidebar-footer">
+    <button class="refresh-btn" onclick="fetchPlayer()">
+      🔄 <span>Actualizar</span>
+    </button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- CONNECTION PAGE -->
+  <div class="page" id="page-connection">
+    <div class="page-header">
+      <div class="page-title">Conexión</div>
+      <div class="page-subtitle">Configura tu API Token, Player Tag y la URL del backend</div>
+    </div>
+    <div class="config-card">
+      <div class="config-card-title">🔑 Credenciales de la API</div>
+      <div class="fields-row">
+        <div class="input-group">
+          <label>API Token</label>
+          <input type="password" id="apiToken" placeholder="eyJ0eXAiOiJKV1..." />
+        </div>
+        <div class="input-group" style="max-width:200px">
+          <label>Player Tag</label>
+          <input type="text" id="playerTag" placeholder="#2PP00" />
+        </div>
+        <button class="btn btn-primary" onclick="fetchPlayer()">🔍 Buscar</button>
+      </div>
+      <div class="proxy-row">
+        <div class="input-group">
+          <label>URL del Backend (Render)</label>
+          <input type="text" id="proxyUrl" placeholder="https://tu-app.onrender.com" />
+        </div>
+        <button class="btn btn-ghost" onclick="testProxy()">Probar conexión</button>
+        <div class="proxy-status">
+          <div class="dot" id="proxyDot"></div>
+          <span id="proxyStatusText">Sin probar</span>
+        </div>
+      </div>
+    </div>
+    <div id="stateIdle" class="state-box">
+      <div class="icon">🔌</div>
+      <h3>Sin datos todavía</h3>
+      <p>Introduce tu API Token y Player Tag y pulsa Buscar para cargar tus datos.</p>
+    </div>
+    <div id="stateLoading" class="state-box" style="display:none">
+      <div class="spinner"></div>
+      <h3>Cargando...</h3>
+      <p>Consultando la API de Brawl Stars a través del proxy...</p>
+    </div>
+    <div id="stateError" class="state-box" style="display:none">
+      <div class="icon">❌</div>
+      <h3 id="errorTitle">Error</h3>
+      <p id="errorMsg"></p>
+    </div>
   </div>
 
-  <div class="brawler-count" id="brawlerCount"></div>
-
-  <div class="state-box" id="stateIdle" style="display:block">
-    <div class="icon">🎮</div>
-    <h3>¡Listo para buscar!</h3>
-    <p>Introduce la URL de tu backend de Render, tu API Token y tu Player Tag para ver todos tus brawlers.</p>
+  <!-- DASHBOARD PAGE -->
+  <div class="page" id="page-dashboard">
+    <div id="dashboardEmpty" class="state-box">
+      <div class="icon">📊</div>
+      <h3>No hay datos cargados</h3>
+      <p>Ve a <strong>Conexión</strong> e introduce tus credenciales para ver el dashboard.</p>
+    </div>
+    <div id="dashboardContent" style="display:none">
+      <div class="page-header">
+        <div class="page-title" id="dashTitle">Dashboard</div>
+        <div class="page-subtitle" id="dashSubtitle">Resumen de tu cuenta</div>
+      </div>
+      <div class="player-banner">
+        <div class="player-avatar">🎮</div>
+        <div class="player-info">
+          <h2 id="playerName">—</h2>
+          <div class="player-tag" id="playerTagDisplay">—</div>
+          <div class="stat-pills" id="statPills"></div>
+        </div>
+      </div>
+      <div class="section-title">📈 Progreso de colección</div>
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="section-title" style="margin-top:30px">💰 ¿Cuánto falta para el máximo?</div>
+      <div class="cost-grid" id="costGrid"></div>
+    </div>
   </div>
 
-  <div class="state-box" id="stateLoading">
-    <div class="spinner"></div>
-    <h3>Cargando datos...</h3>
-    <p>Consultando la API de Brawl Stars a través de tu proxy...</p>
+  <!-- BRAWLERS PAGE -->
+  <div class="page" id="page-brawlers">
+    <div class="page-header">
+      <div class="page-title">Mis Brawlers</div>
+      <div class="page-subtitle">Lista completa con estadísticas, gadgets y star powers</div>
+    </div>
+    <div id="brawlersEmpty" class="state-box">
+      <div class="icon">🎮</div>
+      <h3>No hay datos cargados</h3>
+      <p>Ve a <strong>Conexión</strong> e introduce tus credenciales para ver tus brawlers.</p>
+    </div>
+    <div id="brawlersContent" style="display:none">
+      <div class="filters">
+        <span class="filter-label">Rareza</span>
+        <button class="filter-btn active" onclick="setFilter('all',this)">Todos</button>
+        <button class="filter-btn" onclick="setFilter('Legendary',this)">Legendary</button>
+        <button class="filter-btn" onclick="setFilter('Mythic',this)">Mythic</button>
+        <button class="filter-btn" onclick="setFilter('Epic',this)">Epic</button>
+        <button class="filter-btn" onclick="setFilter('Super Rare',this)">Super Rare</button>
+        <button class="filter-btn" onclick="setFilter('Rare',this)">Rare</button>
+        <select class="sort-select" id="sortSelect" onchange="renderBrawlers()">
+          <option value="trophies">Trofeos ↓</option>
+          <option value="level">Nivel ↓</option>
+          <option value="name">Nombre A-Z</option>
+        </select>
+      </div>
+      <div class="brawler-count" id="brawlerCount"></div>
+      <div class="brawlers-grid" id="brawlersGrid"></div>
+    </div>
   </div>
 
-  <div class="state-box" id="stateError">
-    <div class="icon">❌</div>
-    <h3 id="errorTitle">Error</h3>
-    <p id="errorMsg"></p>
-  </div>
-
-  <div class="brawlers-grid" id="brawlersGrid"></div>
-</div>
+</main>
 
 <script>
-// ─── Emoji map ────────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 const EMOJIS = {
   'Shelly':'🎯','Nita':'🐻','Colt':'🔫','Bull':'💪','Brock':'🚀','El Primo':'👊',
   'Barley':'🍺','Poco':'🎸','Rosa':'🌹','Jessie':'⚡','Dynamike':'💣','Tick':'⏰',
@@ -613,28 +427,44 @@ const EMOJIS = {
   'Lola':'🎭','Fang':'🐯','Eve':'🥚','Janet':'🎵','Otis':'🎨','Sam':'🥊',
   'Max':'💨','Gene':'🔮','Tara':'🃏','Sprout':'🌱','Sandy':'🏖','Amber':'🔥',
   'Crow':'🐦','Leon':'🌿','Spike':'🌵','Surge':'⚡','Mr. P':'🎩','Squeak':'💊',
-  'Lou':'🍦','Buzz':'🦈','Griff':'💳','Ruffs':'⭐','Lola':'🎭'
+  'Lou':'🍦','Buzz':'🦈','Ruffs':'⭐'
 }
 
-let allBrawlers = []
-let rarityMap = {}
-let currentFilter = 'all'
+// Gold cost to go from level X to X+1
+const GOLD_PER_LEVEL = [0, 20, 35, 75, 140, 290, 480, 800, 1250, 1875, 2800]
+// Power points needed to go from level X to X+1 (index = from level)
+const PP_PER_LEVEL   = [0, 20, 30, 50,  80, 130, 210, 340,  550,  890,    0]
+const GADGET_COST    = 1000
+const STARPOWER_COST = 2000
 
-// ─── Persist settings ─────────────────────────────────────────────────────────
+// ─── State ────────────────────────────────────────────────────────────────────
+let allBrawlers = [], rarityMap = {}, gadgetCountMap = {}, spCountMap = {}
+let currentFilter = 'all', playerData = null
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
+  document.getElementById('page-' + page).classList.add('active')
+  document.getElementById('nav-' + page).classList.add('active')
+}
+
+// ─── Persist config ───────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
   const saved = localStorage.getItem('bs_config')
   if (saved) {
     try {
       const cfg = JSON.parse(saved)
-      if (cfg.tag) document.getElementById('playerTag').value = cfg.tag
-      if (cfg.proxy) document.getElementById('proxyUrl').value = cfg.proxy
+      if (cfg.tag)   document.getElementById('playerTag').value = cfg.tag
+      if (cfg.proxy) document.getElementById('proxyUrl').value  = cfg.proxy
     } catch {}
   }
+  goTo('dashboard')
 })
 
 function saveConfig() {
   localStorage.setItem('bs_config', JSON.stringify({
-    tag: document.getElementById('playerTag').value,
+    tag:   document.getElementById('playerTag').value,
     proxy: document.getElementById('proxyUrl').value,
   }))
 }
@@ -642,207 +472,255 @@ function saveConfig() {
 // ─── Proxy test ───────────────────────────────────────────────────────────────
 async function testProxy() {
   const proxy = document.getElementById('proxyUrl').value.trim().replace(/\/$/, '')
-  const dot = document.getElementById('proxyDot')
-  const txt = document.getElementById('proxyStatusText')
-
-  if (!proxy) { alert('Introduce primero la URL del proxy.'); return }
-
-  dot.className = 'dot'
-  txt.textContent = 'Probando...'
-
+  const dot = document.getElementById('proxyDot'), txt = document.getElementById('proxyStatusText')
+  if (!proxy) { alert('Introduce primero la URL del backend.'); return }
+  dot.className = 'dot'; txt.textContent = 'Probando...'
   try {
-    const res = await fetch(`${proxy}/`, { signal: AbortSignal.timeout(6000) })
-    if (res.ok) {
-      dot.className = 'dot green'
-      txt.textContent = 'Conectado ✓'
-    } else {
-      throw new Error(`HTTP ${res.status}`)
-    }
-  } catch (e) {
-    dot.className = 'dot red'
-    txt.textContent = 'Error: ' + e.message
-  }
+    const res = await fetch(`${proxy}/`, { signal: AbortSignal.timeout(8000) })
+    if (res.ok) { dot.className = 'dot green'; txt.textContent = 'Conectado ✓' }
+    else throw new Error(`HTTP ${res.status}`)
+  } catch(e) { dot.className = 'dot red'; txt.textContent = 'Error: ' + e.message }
 }
 
-// ─── Main fetch ───────────────────────────────────────────────────────────────
+// ─── Fetch ────────────────────────────────────────────────────────────────────
 async function fetchPlayer() {
-  const token = document.getElementById('apiToken').value.trim()
+  const token  = document.getElementById('apiToken').value.trim()
   const rawTag = document.getElementById('playerTag').value.trim()
   const proxy  = document.getElementById('proxyUrl').value.trim().replace(/\/$/, '')
-
-  if (!proxy)  { alert('Introduce la URL de tu backend en Render.'); return }
-  if (!token)  { alert('Introduce tu API Token.'); return }
-  if (!rawTag) { alert('Introduce el Player Tag.'); return }
-
+  if (!proxy)  { goTo('connection'); alert('Introduce la URL del backend.'); return }
+  if (!token)  { goTo('connection'); alert('Introduce tu API Token.'); return }
+  if (!rawTag) { goTo('connection'); alert('Introduce el Player Tag.'); return }
   saveConfig()
-
   const tag = rawTag.startsWith('#') ? rawTag.slice(1) : rawTag
-
-  setState('stateLoading')
-  document.getElementById('playerCard').style.display = 'none'
-  document.getElementById('filtersBar').style.display = 'none'
-  document.getElementById('brawlerCount').style.display = 'none'
-  document.getElementById('brawlersGrid').innerHTML = ''
-
+  document.getElementById('stateIdle').style.display    = 'none'
+  document.getElementById('stateLoading').style.display = 'block'
+  document.getElementById('stateError').style.display   = 'none'
+  goTo('connection')
   const headers = { 'Authorization': `Bearer ${token}` }
-
   try {
-    // Fetch brawler rarities & player data in parallel
-    const [playerRes, brawlersRes] = await Promise.all([
+    const [pRes, bRes] = await Promise.all([
       fetch(`${proxy}/player/${tag}`, { headers }),
       fetch(`${proxy}/brawlers`,      { headers }),
     ])
-
-    if (!playerRes.ok) {
-      const err = await playerRes.json().catch(() => ({}))
-      throw new Error(err.error || `HTTP ${playerRes.status}`)
+    if (!pRes.ok) { const e = await pRes.json().catch(()=>({})); throw new Error(e.error || `HTTP ${pRes.status}`) }
+    playerData = await pRes.json()
+    const meta = bRes.ok ? await bRes.json() : { items: [] }
+    rarityMap = {}; gadgetCountMap = {}; spCountMap = {}
+    for (const b of (meta.items || [])) {
+      rarityMap[b.name]      = b.rarity?.name || 'default'
+      gadgetCountMap[b.name] = (b.gadgets    || []).length
+      spCountMap[b.name]     = (b.starPowers || []).length
     }
-
-    const playerData  = await playerRes.json()
-    const brawlersData = brawlersRes.ok ? await brawlersRes.json() : { items: [] }
-
-    // Build rarity map from /brawlers endpoint
-    rarityMap = {}
-    for (const b of (brawlersData.items || [])) {
-      rarityMap[b.name] = b.rarity?.name || 'default'
-    }
-
-    showPlayer(playerData)
-
-  } catch (err) {
-    setState('stateError')
+    window._totalInGame = (meta.items || []).length || 80
+    allBrawlers = (playerData.brawlers || []).map(b => ({
+      ...b,
+      rarity:       rarityMap[b.name]      || 'default',
+      totalGadgets: gadgetCountMap[b.name] ?? 2,
+      totalSP:      spCountMap[b.name]     ?? 2,
+    }))
+    document.getElementById('stateLoading').style.display = 'none'
+    document.getElementById('stateIdle').style.display    = 'block'
+    updateSidebar(); renderDashboard(); renderBrawlers(); goTo('dashboard')
+  } catch(err) {
+    document.getElementById('stateLoading').style.display = 'none'
+    document.getElementById('stateError').style.display   = 'block'
     document.getElementById('errorTitle').textContent = 'Error al cargar'
-    document.getElementById('errorMsg').textContent = err.message + ' — Asegúrate de que el backend está activo en Render y la URL es correcta.'
+    document.getElementById('errorMsg').textContent   = err.message + ' — Verifica que el backend está activo.'
   }
 }
 
-// ─── Render player ────────────────────────────────────────────────────────────
-function showPlayer(data) {
-  setState(null)
-  const card = document.getElementById('playerCard')
-  card.style.display = 'block'
-
-  document.getElementById('playerName').textContent    = data.name || 'Jugador'
-  document.getElementById('playerTagDisplay').textContent = data.tag || ''
-
-  const pills = [
-    { label: '🏆 Trofeos',  val: (data.trophies || 0).toLocaleString('es'),       cls: 'gold'  },
-    { label: '📈 Máx',      val: (data.highestTrophies || 0).toLocaleString('es'), cls: ''      },
-    { label: '🎮 Brawlers', val: data.brawlers?.length || 0,                       cls: 'green' },
-    { label: '🏅 Club',     val: data.club?.name || 'Sin club',                    cls: ''      },
-    { label: '🌍 Exp',      val: `Nv. ${data.expLevel || 1}`,                     cls: ''      },
-  ]
-
-  document.getElementById('statPills').innerHTML =
-    pills.map(p => `<div class="pill">${p.label}: <span class="val ${p.cls}">${p.val}</span></div>`).join('')
-
-  allBrawlers = (data.brawlers || []).map(b => ({
-    ...b,
-    rarity: rarityMap[b.name] || 'default',
-  }))
-
-  document.getElementById('filtersBar').style.display = 'flex'
-  document.getElementById('brawlerCount').style.display = 'block'
-  renderBrawlers()
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
+function updateSidebar() {
+  if (!playerData) return
+  document.getElementById('sidebarPlayer').style.display = 'block'
+  document.getElementById('spName').textContent     = playerData.name || '—'
+  document.getElementById('spTag').textContent      = playerData.tag  || '—'
+  document.getElementById('spTrophies').textContent = (playerData.trophies || 0).toLocaleString('es')
 }
 
-// ─── Filter & sort ────────────────────────────────────────────────────────────
-function setFilter(filter, btn) {
-  currentFilter = filter
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
+// ─── Cost helpers ─────────────────────────────────────────────────────────────
+function goldToMax(lvl) {
+  let t = 0; for (let i = lvl; i < 11; i++) t += GOLD_PER_LEVEL[i]; return t
+}
+function ppToMax(lvl) {
+  let t = 0; for (let i = lvl; i < 10; i++) t += PP_PER_LEVEL[i]; return t
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  if (!playerData || !allBrawlers.length) {
+    document.getElementById('dashboardEmpty').style.display   = 'block'
+    document.getElementById('dashboardContent').style.display = 'none'
+    return
+  }
+  document.getElementById('dashboardEmpty').style.display   = 'none'
+  document.getElementById('dashboardContent').style.display = 'block'
+  document.getElementById('dashTitle').textContent    = `Hola, ${playerData.name}!`
+  document.getElementById('dashSubtitle').textContent = `${playerData.tag} · Nivel ${playerData.expLevel || 1}`
+  document.getElementById('playerName').textContent       = playerData.name || '—'
+  document.getElementById('playerTagDisplay').textContent = playerData.tag  || '—'
+  document.getElementById('statPills').innerHTML = [
+    { label:'🏆 Trofeos', val:(playerData.trophies||0).toLocaleString('es'),        cls:'gold'  },
+    { label:'📈 Máx',     val:(playerData.highestTrophies||0).toLocaleString('es'), cls:''      },
+    { label:'🏅 Club',    val: playerData.club?.name || 'Sin club',                 cls:''      },
+    { label:'🌍 Exp',     val:`Nv. ${playerData.expLevel||1}`,                     cls:''      },
+  ].map(p=>`<div class="pill">${p.label}: <span class="val ${p.cls}">${p.val}</span></div>`).join('')
+
+  const total = window._totalInGame || 80
+  const owned = allBrawlers.length
+  const maxed = allBrawlers.filter(b=>(b.power||1)>=11).length
+  const myG   = allBrawlers.reduce((s,b)=>s+(b.gadgets||[]).length,0)
+  const totG  = allBrawlers.reduce((s,b)=>s+(b.totalGadgets??2),0)
+  const mySP  = allBrawlers.reduce((s,b)=>s+(b.starPowers||[]).length,0)
+  const totSP = allBrawlers.reduce((s,b)=>s+(b.totalSP??2),0)
+
+  const cards = [
+    { icon:'🎮', label:'Brawlers desbloqueados',   val:owned,  tot:total, color:'linear-gradient(90deg,var(--accent3),var(--purple))', vc:'var(--accent3)' },
+    { icon:'⭐', label:'Star Powers desbloqueados', val:mySP,   tot:totSP, color:'linear-gradient(90deg,var(--accent),var(--accent2))', vc:'var(--accent)'  },
+    { icon:'⚙️', label:'Gadgets desbloqueados',     val:myG,    tot:totG,  color:'linear-gradient(90deg,var(--purple),#5533aa)',        vc:'var(--purple)'  },
+    { icon:'💎', label:'Brawlers a nivel 11',        val:maxed,  tot:owned, color:'linear-gradient(90deg,var(--green),#00aa66)',         vc:'var(--green)'   },
+  ]
+  document.getElementById('statsGrid').innerHTML = cards.map(c=>{
+    const pct = c.tot > 0 ? Math.round((c.val/c.tot)*100) : 0
+    return `<div class="stat-card">
+      <div class="stat-card-accent" style="background:${c.color}"></div>
+      <span class="stat-card-icon">${c.icon}</span>
+      <div class="stat-card-label">${c.label}</div>
+      <div class="stat-card-main">
+        <span class="stat-card-value" style="color:${c.vc}">${c.val}</span>
+        <span class="stat-card-total">/ ${c.tot}</span>
+      </div>
+      <div class="stat-progress-bg"><div class="stat-progress-fill" style="background:${c.color};width:${pct}%"></div></div>
+      <div class="stat-progress-pct">${pct}% completado</div>
+    </div>`
+  }).join('')
+
+  // Cost calculations
+  let goldLvl=0, ppLvl=0
+  for (const b of allBrawlers) { goldLvl += goldToMax(b.power||1); ppLvl += ppToMax(b.power||1) }
+  const misG  = allBrawlers.reduce((s,b)=>s+Math.max(0,(b.totalGadgets??2)-(b.gadgets||[]).length),0)
+  const misSP = allBrawlers.reduce((s,b)=>s+Math.max(0,(b.totalSP??2)-(b.starPowers||[]).length),0)
+  const goldG = misG  * GADGET_COST
+  const goldS = misSP * STARPOWER_COST
+  const totGold = goldLvl + goldG + goldS
+  const fmt = n => n.toLocaleString('es')
+
+  document.getElementById('costGrid').innerHTML = `
+    <div class="cost-card">
+      <div class="cost-card-accent" style="background:linear-gradient(90deg,var(--accent),var(--accent2))"></div>
+      <div class="cost-card-title">🪙 Oro necesario</div>
+      <div class="cost-card-subtitle">Para maxear niveles, gadgets y star powers</div>
+      <div class="cost-row">
+        <span class="cost-icon">⬆️</span>
+        <span class="cost-label">Subir todos al nivel 11</span>
+        <span class="cost-value cost-gold">${fmt(goldLvl)}</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-icon">⚙️</span>
+        <span class="cost-label">Gadgets que faltan (×${misG})</span>
+        <span class="cost-value ${goldG===0?'cost-zero':'cost-gold'}">${fmt(goldG)}</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-icon">⭐</span>
+        <span class="cost-label">Star Powers que faltan (×${misSP})</span>
+        <span class="cost-value ${goldS===0?'cost-zero':'cost-gold'}">${fmt(goldS)}</span>
+      </div>
+      <div class="cost-row" style="border-top:1px solid rgba(249,196,0,0.2);margin-top:4px;padding-top:12px">
+        <span class="cost-icon">💰</span>
+        <span class="cost-label"><strong>Total de oro</strong></span>
+        <span class="cost-value cost-gold" style="font-size:1.55rem">${fmt(totGold)}</span>
+      </div>
+    </div>
+    <div class="cost-card">
+      <div class="cost-card-accent" style="background:linear-gradient(90deg,var(--purple),#5533aa)"></div>
+      <div class="cost-card-title">⚡ Puntos de Fuerza necesarios</div>
+      <div class="cost-card-subtitle">Para subir todos tus brawlers al nivel 11</div>
+      <div class="cost-row">
+        <span class="cost-icon">🎮</span>
+        <span class="cost-label">Brawlers sin maxear</span>
+        <span class="cost-value cost-power">${owned - maxed}</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-icon">✅</span>
+        <span class="cost-label">Brawlers ya a nivel 11</span>
+        <span class="cost-value cost-zero">${maxed}</span>
+      </div>
+      <div class="cost-row" style="border-top:1px solid rgba(155,93,229,0.25);margin-top:4px;padding-top:12px">
+        <span class="cost-icon">⚡</span>
+        <span class="cost-label"><strong>Total puntos de fuerza</strong></span>
+        <span class="cost-value cost-power" style="font-size:1.55rem">${fmt(ppLvl)}</span>
+      </div>
+    </div>`
+}
+
+// ─── Brawlers page ────────────────────────────────────────────────────────────
+function setFilter(f, btn) {
+  currentFilter = f
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'))
   btn.classList.add('active')
   renderBrawlers()
 }
 
 function renderBrawlers() {
+  if (!allBrawlers.length) {
+    document.getElementById('brawlersEmpty').style.display   = 'block'
+    document.getElementById('brawlersContent').style.display = 'none'
+    return
+  }
+  document.getElementById('brawlersEmpty').style.display   = 'none'
+  document.getElementById('brawlersContent').style.display = 'block'
   const sort = document.getElementById('sortSelect').value
   let list = [...allBrawlers]
-
-  if (currentFilter !== 'all') {
-    list = list.filter(b => b.rarity === currentFilter)
-  }
-
-  list.sort((a, b) => {
-    if (sort === 'trophies') return (b.trophies || 0) - (a.trophies || 0)
-    if (sort === 'level')    return (b.power    || 0) - (a.power    || 0)
-    if (sort === 'name')     return a.name.localeCompare(b.name)
+  if (currentFilter !== 'all') list = list.filter(b=>b.rarity===currentFilter)
+  list.sort((a,b)=>{
+    if (sort==='trophies') return (b.trophies||0)-(a.trophies||0)
+    if (sort==='level')    return (b.power||0)-(a.power||0)
+    if (sort==='name')     return a.name.localeCompare(b.name)
     return 0
   })
-
-  const maxT = Math.max(...list.map(b => b.trophies || 0), 1)
-
+  const maxT = Math.max(...list.map(b=>b.trophies||0),1)
   document.getElementById('brawlerCount').innerHTML =
     `Mostrando <span>${list.length}</span> de <span>${allBrawlers.length}</span> brawlers`
-
-  document.getElementById('brawlersGrid').innerHTML =
-    list.map((b, i) => buildCard(b, i, maxT)).join('')
+  document.getElementById('brawlersGrid').innerHTML = list.map((b,i)=>buildCard(b,i,maxT)).join('')
 }
 
-// ─── Card template ────────────────────────────────────────────────────────────
 function buildCard(b, idx, maxT) {
-  const rClass  = (b.rarity || 'default').replace(/\s+/g, '-')
-  const emoji   = EMOJIS[b.name] || '⭐'
-  const pct     = Math.min(100, ((b.trophies || 0) / maxT) * 100).toFixed(1)
-  const lvl     = b.power || 1
-  const delay   = Math.min(idx * 35, 600)
-
-  const gadgets    = (b.gadgets    || []).map(g  => upgradeRow('⚙️', g.name,  'gadget')).join('')
-  const starPowers = (b.starPowers || []).map(sp => upgradeRow('⭐', sp.name, 'star'  )).join('')
-  const gears      = (b.gears      || []).map(g  => upgradeRow('🔩', g.name,  'gear'  )).join('')
-
-  const allUpgrades = gadgets + starPowers + gears
-
-  return `
-  <div class="brawler-card" style="animation-delay:${delay}ms">
+  const rc  = (b.rarity||'default').replace(/\s+/g,'-')
+  const em  = EMOJIS[b.name]||'⭐'
+  const pct = Math.min(100,((b.trophies||0)/maxT)*100).toFixed(1)
+  const lvl = b.power||1
+  const d   = Math.min(idx*30,600)
+  const g   = (b.gadgets||[]).map(x=>uRow('⚙️',x.name,'gadget')).join('')
+  const sp  = (b.starPowers||[]).map(x=>uRow('⭐',x.name,'star')).join('')
+  const gr  = (b.gears||[]).map(x=>uRow('🔩',x.name,'gear')).join('')
+  const all = g+sp+gr
+  return `<div class="brawler-card" style="animation-delay:${d}ms">
     <div class="card-header">
-      <div class="rarity-strip rarity-${rClass}"></div>
-      <div class="brawler-icon icon-bg-${rClass}">${emoji}</div>
-      <div>
-        <div class="brawler-name">${b.name}</div>
-        <div class="brawler-role">${b.rarity || 'Unknown'}</div>
-      </div>
-      <div class="level-badge">
-        <div class="lvl-num lvl-${lvl}">${lvl}</div>
-        <div class="lvl-label">Power</div>
-      </div>
+      <div class="rarity-strip rarity-${rc}"></div>
+      <div class="brawler-icon icon-bg-${rc}">${em}</div>
+      <div><div class="brawler-name">${b.name}</div><div class="brawler-role">${b.rarity||'Unknown'}</div></div>
+      <div class="level-badge"><div class="lvl-num lvl-${lvl}">${lvl}</div><div class="lvl-label">Power</div></div>
     </div>
     <div class="card-body">
       <div class="trophy-row">
         <span>🏆</span>
-        <div class="trophy-bar-bg">
-          <div class="trophy-bar-fill" style="width:${pct}%"></div>
-        </div>
-        <span class="trophy-val">${(b.trophies || 0).toLocaleString('es')}</span>
+        <div class="trophy-bar-bg"><div class="trophy-bar-fill" style="width:${pct}%"></div></div>
+        <span class="trophy-val">${(b.trophies||0).toLocaleString('es')}</span>
       </div>
       <div class="upgrades-section">
         <div class="upg-title">Gadgets · Star Powers · Gears</div>
-        ${allUpgrades
-          ? `<div class="upg-list">${allUpgrades}</div>`
-          : '<p class="no-upgrades">Sin gadgets ni star powers desbloqueados</p>'}
+        ${all?`<div class="upg-list">${all}</div>`:'<p class="no-upgrades">Sin gadgets ni star powers</p>'}
       </div>
     </div>
   </div>`
 }
 
-function upgradeRow(icon, name, type) {
-  const labels = { gadget: 'Gadget', star: 'Star Power', gear: 'Gear' }
-  return `<div class="upg-item">
-    <span class="upg-icon">${icon}</span>
-    <span class="upg-name">${name}</span>
-    <span class="upg-type type-${type}">${labels[type]}</span>
-  </div>`
+function uRow(icon, name, type) {
+  const labels = {gadget:'Gadget',star:'Star Power',gear:'Gear'}
+  return `<div class="upg-item"><span class="upg-icon">${icon}</span><span class="upg-name">${name}</span><span class="upg-type type-${type}">${labels[type]}</span></div>`
 }
 
-// ─── State manager ────────────────────────────────────────────────────────────
-function setState(state) {
-  ['stateIdle','stateLoading','stateError'].forEach(id => {
-    document.getElementById(id).style.display = 'none'
-  })
-  if (state) document.getElementById(state).style.display = 'block'
-}
-
-// Enter key support
-document.addEventListener('keydown', e => { if (e.key === 'Enter') fetchPlayer() })
+document.addEventListener('keydown', e => { if (e.key==='Enter') fetchPlayer() })
 </script>
 </body>
 </html>
