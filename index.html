@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brawl Stars Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d1a;
+    --surface: #13132b;
+    --surface2: #1a1a38;
+    --accent: #f9c400;
+    --accent2: #ff6b35;
+    --accent3: #00e5ff;
+    --purple: #9b5de5;
+    --green: #00f593;
+    --red: #ff3860;
+    --text: #e8e8ff;
+    --muted: #7070a0;
+    --border: rgba(255,255,255,0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 20%, rgba(155,93,229,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 80%, rgba(249,196,0,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(0,229,255,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 24px 60px; }
+
+  header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 36px;
+  }
+
+  .logo {
+    width: 52px; height: 52px;
+    background: var(--accent);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 0 20px rgba(249,196,0,0.4);
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-family: 'Boogaloo', cursive;
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 1px;
+  }
+
+  header p { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+
+  /* Config panel */
+  .config-panel {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .config-title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .search-section { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .input-group { flex: 1; min-width: 200px; }
+  .input-group label {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+
+  .input-group input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    transition: all 0.25s;
+    outline: none;
+  }
+
+  .input-group input::placeholder { color: var(--muted); }
+  .input-group input:focus {
+    border-color: var(--accent3);
+    box-shadow: 0 0 0 3px rgba(0,229,255,0.1);
+  }
+
+  .proxy-row {
+    display: flex; align-items: flex-end; gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .proxy-row .input-group { flex: 2; }
+
+  .proxy-status {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    padding-bottom: 12px;
+    flex-shrink: 0;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.3s;
+  }
+
+  .dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot.red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+  .btn {
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.05rem;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+    align-self: flex-end;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #1a0a00;
+    box-shadow: 0 4px 20px rgba(249,196,0,0.3);
+  }
+
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(249,196,0,0.4); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+  }
+
+  .btn-ghost:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  /* Player card */
+  .player-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    display: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .player-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--purple));
+  }
+
+  .player-meta { display: flex; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+
+  .player-avatar {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, var(--purple), var(--accent3));
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    flex-shrink: 0;
+  }
+
+  .player-info h2 {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.8rem;
+    color: var(--accent);
+  }
+
+  .player-tag { color: var(--muted); font-size: 0.85rem; margin: 2px 0 10px; }
+
+  .stat-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .pill .val { color: var(--accent3); }
+  .pill .val.gold { color: var(--accent); }
+  .pill .val.green { color: var(--green); }
+
+  /* Filters */
+  .filters {
+    display: none;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label {
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .filter-btn {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 50px;
+    padding: 6px 14px;
+    color: var(--muted);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #1a0a00;
+  }
+
+  .sort-select {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 50px;
+    padding: 6px 14px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    margin-left: auto;
+  }
+
+  .brawler-count {
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin-bottom: 18px;
+    display: none;
+  }
+
+  .brawler-count span { color: var(--accent3); font-weight: 800; }
+
+  /* Brawler grid */
+  .brawlers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px;
+  }
+
+  .brawler-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .brawler-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 36px rgba(0,0,0,0.4);
+    border-color: rgba(255,255,255,0.14);
+  }
+
+  .card-header {
+    padding: 18px 20px 14px;
+    display: flex; align-items: center; gap: 14px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .rarity-strip {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .brawler-icon {
+    width: 50px; height: 50px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+
+  .brawler-name {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.2rem;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+  }
+
+  .brawler-role {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .level-badge {
+    margin-left: auto;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 6px 10px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .lvl-num {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .lvl-label {
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+
+  .lvl-1,.lvl-2,.lvl-3 { color: #888; }
+  .lvl-4,.lvl-5,.lvl-6 { color: var(--green); }
+  .lvl-7,.lvl-8,.lvl-9 { color: var(--accent3); }
+  .lvl-10,.lvl-11 { color: var(--accent); text-shadow: 0 0 8px rgba(249,196,0,0.5); }
+
+  .card-body { padding: 14px 18px 16px; }
+
+  .trophy-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .trophy-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50px;
+    overflow: hidden;
+  }
+
+  .trophy-bar-fill {
+    height: 100%;
+    border-radius: 50px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 1s cubic-bezier(0.22,1,0.36,1);
+  }
+
+  .trophy-val {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--accent);
+    min-width: 50px;
+    text-align: right;
+  }
+
+  .upgrades-section { margin-top: 10px; }
+
+  .upg-title {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .upg-list { display: flex; flex-direction: column; gap: 5px; }
+
+  .upg-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 7px 11px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .upg-icon { font-size: 0.95rem; flex-shrink: 0; }
+  .upg-name { flex: 1; }
+
+  .upg-type {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 7px;
+    border-radius: 50px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .type-gadget { background: rgba(155,93,229,0.2); color: var(--purple); }
+  .type-star   { background: rgba(249,196,0,0.15); color: var(--accent); }
+  .type-gear   { background: rgba(0,229,255,0.12); color: var(--accent3); }
+
+  .no-upgrades { color: var(--muted); font-size: 0.76rem; font-style: italic; }
+
+  /* Rarity strips */
+  .rarity-Legendary   { background: linear-gradient(90deg,#ffcc00,#ff8800); }
+  .rarity-Mythic      { background: linear-gradient(90deg,#ff4466,#cc0033); }
+  .rarity-Epic        { background: linear-gradient(90deg,#cc44ff,#8800cc); }
+  .rarity-Super-Rare  { background: linear-gradient(90deg,#0088ff,#0055cc); }
+  .rarity-Rare        { background: linear-gradient(90deg,#00d084,#00a060); }
+  .rarity-Trophy      { background: linear-gradient(90deg,#4db8ff,#0080ff); }
+  .rarity-default     { background: linear-gradient(90deg,#555,#333); }
+
+  .icon-bg-Legendary  { background: rgba(255,204,0,0.15); }
+  .icon-bg-Mythic     { background: rgba(255,68,102,0.15); }
+  .icon-bg-Epic       { background: rgba(204,68,255,0.15); }
+  .icon-bg-Super-Rare { background: rgba(0,136,255,0.15); }
+  .icon-bg-Rare       { background: rgba(0,208,132,0.15); }
+  .icon-bg-Trophy     { background: rgba(77,184,255,0.15); }
+  .icon-bg-default    { background: rgba(100,100,100,0.12); }
+
+  /* States */
+  .state-box {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+    display: none;
+  }
+
+  .state-box .icon { font-size: 3.5rem; margin-bottom: 16px; }
+  .state-box h3 { font-family: 'Boogaloo', cursive; font-size: 1.5rem; color: var(--text); margin-bottom: 8px; }
+  .state-box p { font-size: 0.88rem; max-width: 360px; margin: 0 auto; line-height: 1.6; }
+
+  .spinner {
+    width: 44px; height: 44px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 20px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 640px) {
+    .brawlers-grid { grid-template-columns: 1fr; }
+    .search-section { flex-direction: column; }
+    .btn { justify-content: center; }
+    .sort-select { margin-left: 0; }
+    header h1 { font-size: 1.7rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">⚡</div>
+    <div>
+      <h1>Brawl Stars Dashboard</h1>
+      <p>Visualiza tus brawlers, niveles y habilidades</p>
+    </div>
+  </header>
+
+  <!-- Config panel -->
+  <div class="config-panel">
+    <div class="config-title">⚙️ Configuración</div>
+    <div class="search-section">
+      <div class="input-group">
+        <label>API Token</label>
+        <input type="password" id="apiToken" placeholder="eyJ0eXAiOiJKV1..." />
+      </div>
+      <div class="input-group" style="max-width:200px">
+        <label>Player Tag</label>
+        <input type="text" id="playerTag" placeholder="#2PP00" />
+      </div>
+      <button class="btn btn-primary" onclick="fetchPlayer()">
+        🔍 Buscar
+      </button>
+    </div>
+
+    <div class="proxy-row">
+      <div class="input-group">
+        <label>URL del Proxy / Backend</label>
+        <input type="text" id="proxyUrl" placeholder="https://tu-app.onrender.com" />
+      </div>
+      <button class="btn btn-ghost" onclick="testProxy()">Probar conexión</button>
+      <div class="proxy-status">
+        <div class="dot" id="proxyDot"></div>
+        <span id="proxyStatusText">Sin probar</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player info -->
+  <div class="player-card" id="playerCard">
+    <div class="player-meta">
+      <div class="player-avatar">🎮</div>
+      <div class="player-info">
+        <h2 id="playerName">—</h2>
+        <div class="player-tag" id="playerTagDisplay">—</div>
+        <div class="stat-pills" id="statPills"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters" id="filtersBar">
+    <span class="filter-label">Rareza</span>
+    <button class="filter-btn active" onclick="setFilter('all',this)">Todos</button>
+    <button class="filter-btn" onclick="setFilter('Legendary',this)">Legendary</button>
+    <button class="filter-btn" onclick="setFilter('Mythic',this)">Mythic</button>
+    <button class="filter-btn" onclick="setFilter('Epic',this)">Epic</button>
+    <button class="filter-btn" onclick="setFilter('Super Rare',this)">Super Rare</button>
+    <button class="filter-btn" onclick="setFilter('Rare',this)">Rare</button>
+    <select class="sort-select" id="sortSelect" onchange="renderBrawlers()">
+      <option value="trophies">Ordenar: Trofeos ↓</option>
+      <option value="level">Ordenar: Nivel ↓</option>
+      <option value="name">Ordenar: Nombre A-Z</option>
+    </select>
+  </div>
+
+  <div class="brawler-count" id="brawlerCount"></div>
+
+  <div class="state-box" id="stateIdle" style="display:block">
+    <div class="icon">🎮</div>
+    <h3>¡Listo para buscar!</h3>
+    <p>Introduce la URL de tu backend de Render, tu API Token y tu Player Tag para ver todos tus brawlers.</p>
+  </div>
+
+  <div class="state-box" id="stateLoading">
+    <div class="spinner"></div>
+    <h3>Cargando datos...</h3>
+    <p>Consultando la API de Brawl Stars a través de tu proxy...</p>
+  </div>
+
+  <div class="state-box" id="stateError">
+    <div class="icon">❌</div>
+    <h3 id="errorTitle">Error</h3>
+    <p id="errorMsg"></p>
+  </div>
+
+  <div class="brawlers-grid" id="brawlersGrid"></div>
+</div>
+
+<script>
+// ─── Emoji map ────────────────────────────────────────────────────────────────
+const EMOJIS = {
+  'Shelly':'🎯','Nita':'🐻','Colt':'🔫','Bull':'💪','Brock':'🚀','El Primo':'👊',
+  'Barley':'🍺','Poco':'🎸','Rosa':'🌹','Jessie':'⚡','Dynamike':'💣','Tick':'⏰',
+  '8-Bit':'🕹','Rico':'🎰','Darryl':'🛢','Penny':'💰','Carl':'⛏','Jacky':'🔨',
+  'Gus':'👻','Bo':'🏹','Emz':'💀','Stu':'🛹','Piper':'🌹','Pam':'🔧','Frank':'🪨',
+  'Bibi':'🍬','Bea':'🐝','Nani':'🤖','Edgar':'🧲','Griff':'💳','Grom':'🌊',
+  'Bonnie':'🎶','Gale':'❄','Colette':'📱','Belle':'⚡','Ash':'🍖','Meg':'⚙',
+  'Lola':'🎭','Fang':'🐯','Eve':'🥚','Janet':'🎵','Otis':'🎨','Sam':'🥊',
+  'Max':'💨','Gene':'🔮','Tara':'🃏','Sprout':'🌱','Sandy':'🏖','Amber':'🔥',
+  'Crow':'🐦','Leon':'🌿','Spike':'🌵','Surge':'⚡','Mr. P':'🎩','Squeak':'💊',
+  'Lou':'🍦','Buzz':'🦈','Griff':'💳','Ruffs':'⭐','Lola':'🎭'
+}
+
+let allBrawlers = []
+let rarityMap = {}
+let currentFilter = 'all'
+
+// ─── Persist settings ─────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('bs_config')
+  if (saved) {
+    try {
+      const cfg = JSON.parse(saved)
+      if (cfg.tag) document.getElementById('playerTag').value = cfg.tag
+      if (cfg.proxy) document.getElementById('proxyUrl').value = cfg.proxy
+    } catch {}
+  }
+})
+
+function saveConfig() {
+  localStorage.setItem('bs_config', JSON.stringify({
+    tag: document.getElementById('playerTag').value,
+    proxy: document.getElementById('proxyUrl').value,
+  }))
+}
+
+// ─── Proxy test ───────────────────────────────────────────────────────────────
+async function testProxy() {
+  const proxy = document.getElementById('proxyUrl').value.trim().replace(/\/$/, '')
+  const dot = document.getElementById('proxyDot')
+  const txt = document.getElementById('proxyStatusText')
+
+  if (!proxy) { alert('Introduce primero la URL del proxy.'); return }
+
+  dot.className = 'dot'
+  txt.textContent = 'Probando...'
+
+  try {
+    const res = await fetch(`${proxy}/`, { signal: AbortSignal.timeout(6000) })
+    if (res.ok) {
+      dot.className = 'dot green'
+      txt.textContent = 'Conectado ✓'
+    } else {
+      throw new Error(`HTTP ${res.status}`)
+    }
+  } catch (e) {
+    dot.className = 'dot red'
+    txt.textContent = 'Error: ' + e.message
+  }
+}
+
+// ─── Main fetch ───────────────────────────────────────────────────────────────
+async function fetchPlayer() {
+  const token = document.getElementById('apiToken').value.trim()
+  const rawTag = document.getElementById('playerTag').value.trim()
+  const proxy  = document.getElementById('proxyUrl').value.trim().replace(/\/$/, '')
+
+  if (!proxy)  { alert('Introduce la URL de tu backend en Render.'); return }
+  if (!token)  { alert('Introduce tu API Token.'); return }
+  if (!rawTag) { alert('Introduce el Player Tag.'); return }
+
+  saveConfig()
+
+  const tag = rawTag.startsWith('#') ? rawTag.slice(1) : rawTag
+
+  setState('stateLoading')
+  document.getElementById('playerCard').style.display = 'none'
+  document.getElementById('filtersBar').style.display = 'none'
+  document.getElementById('brawlerCount').style.display = 'none'
+  document.getElementById('brawlersGrid').innerHTML = ''
+
+  const headers = { 'Authorization': `Bearer ${token}` }
+
+  try {
+    // Fetch brawler rarities & player data in parallel
+    const [playerRes, brawlersRes] = await Promise.all([
+      fetch(`${proxy}/player/${tag}`, { headers }),
+      fetch(`${proxy}/brawlers`,      { headers }),
+    ])
+
+    if (!playerRes.ok) {
+      const err = await playerRes.json().catch(() => ({}))
+      throw new Error(err.error || `HTTP ${playerRes.status}`)
+    }
+
+    const playerData  = await playerRes.json()
+    const brawlersData = brawlersRes.ok ? await brawlersRes.json() : { items: [] }
+
+    // Build rarity map from /brawlers endpoint
+    rarityMap = {}
+    for (const b of (brawlersData.items || [])) {
+      rarityMap[b.name] = b.rarity?.name || 'default'
+    }
+
+    showPlayer(playerData)
+
+  } catch (err) {
+    setState('stateError')
+    document.getElementById('errorTitle').textContent = 'Error al cargar'
+    document.getElementById('errorMsg').textContent = err.message + ' — Asegúrate de que el backend está activo en Render y la URL es correcta.'
+  }
+}
+
+// ─── Render player ────────────────────────────────────────────────────────────
+function showPlayer(data) {
+  setState(null)
+  const card = document.getElementById('playerCard')
+  card.style.display = 'block'
+
+  document.getElementById('playerName').textContent    = data.name || 'Jugador'
+  document.getElementById('playerTagDisplay').textContent = data.tag || ''
+
+  const pills = [
+    { label: '🏆 Trofeos',  val: (data.trophies || 0).toLocaleString('es'),       cls: 'gold'  },
+    { label: '📈 Máx',      val: (data.highestTrophies || 0).toLocaleString('es'), cls: ''      },
+    { label: '🎮 Brawlers', val: data.brawlers?.length || 0,                       cls: 'green' },
+    { label: '🏅 Club',     val: data.club?.name || 'Sin club',                    cls: ''      },
+    { label: '🌍 Exp',      val: `Nv. ${data.expLevel || 1}`,                     cls: ''      },
+  ]
+
+  document.getElementById('statPills').innerHTML =
+    pills.map(p => `<div class="pill">${p.label}: <span class="val ${p.cls}">${p.val}</span></div>`).join('')
+
+  allBrawlers = (data.brawlers || []).map(b => ({
+    ...b,
+    rarity: rarityMap[b.name] || 'default',
+  }))
+
+  document.getElementById('filtersBar').style.display = 'flex'
+  document.getElementById('brawlerCount').style.display = 'block'
+  renderBrawlers()
+}
+
+// ─── Filter & sort ────────────────────────────────────────────────────────────
+function setFilter(filter, btn) {
+  currentFilter = filter
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
+  btn.classList.add('active')
+  renderBrawlers()
+}
+
+function renderBrawlers() {
+  const sort = document.getElementById('sortSelect').value
+  let list = [...allBrawlers]
+
+  if (currentFilter !== 'all') {
+    list = list.filter(b => b.rarity === currentFilter)
+  }
+
+  list.sort((a, b) => {
+    if (sort === 'trophies') return (b.trophies || 0) - (a.trophies || 0)
+    if (sort === 'level')    return (b.power    || 0) - (a.power    || 0)
+    if (sort === 'name')     return a.name.localeCompare(b.name)
+    return 0
+  })
+
+  const maxT = Math.max(...list.map(b => b.trophies || 0), 1)
+
+  document.getElementById('brawlerCount').innerHTML =
+    `Mostrando <span>${list.length}</span> de <span>${allBrawlers.length}</span> brawlers`
+
+  document.getElementById('brawlersGrid').innerHTML =
+    list.map((b, i) => buildCard(b, i, maxT)).join('')
+}
+
+// ─── Card template ────────────────────────────────────────────────────────────
+function buildCard(b, idx, maxT) {
+  const rClass  = (b.rarity || 'default').replace(/\s+/g, '-')
+  const emoji   = EMOJIS[b.name] || '⭐'
+  const pct     = Math.min(100, ((b.trophies || 0) / maxT) * 100).toFixed(1)
+  const lvl     = b.power || 1
+  const delay   = Math.min(idx * 35, 600)
+
+  const gadgets    = (b.gadgets    || []).map(g  => upgradeRow('⚙️', g.name,  'gadget')).join('')
+  const starPowers = (b.starPowers || []).map(sp => upgradeRow('⭐', sp.name, 'star'  )).join('')
+  const gears      = (b.gears      || []).map(g  => upgradeRow('🔩', g.name,  'gear'  )).join('')
+
+  const allUpgrades = gadgets + starPowers + gears
+
+  return `
+  <div class="brawler-card" style="animation-delay:${delay}ms">
+    <div class="card-header">
+      <div class="rarity-strip rarity-${rClass}"></div>
+      <div class="brawler-icon icon-bg-${rClass}">${emoji}</div>
+      <div>
+        <div class="brawler-name">${b.name}</div>
+        <div class="brawler-role">${b.rarity || 'Unknown'}</div>
+      </div>
+      <div class="level-badge">
+        <div class="lvl-num lvl-${lvl}">${lvl}</div>
+        <div class="lvl-label">Power</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="trophy-row">
+        <span>🏆</span>
+        <div class="trophy-bar-bg">
+          <div class="trophy-bar-fill" style="width:${pct}%"></div>
+        </div>
+        <span class="trophy-val">${(b.trophies || 0).toLocaleString('es')}</span>
+      </div>
+      <div class="upgrades-section">
+        <div class="upg-title">Gadgets · Star Powers · Gears</div>
+        ${allUpgrades
+          ? `<div class="upg-list">${allUpgrades}</div>`
+          : '<p class="no-upgrades">Sin gadgets ni star powers desbloqueados</p>'}
+      </div>
+    </div>
+  </div>`
+}
+
+function upgradeRow(icon, name, type) {
+  const labels = { gadget: 'Gadget', star: 'Star Power', gear: 'Gear' }
+  return `<div class="upg-item">
+    <span class="upg-icon">${icon}</span>
+    <span class="upg-name">${name}</span>
+    <span class="upg-type type-${type}">${labels[type]}</span>
+  </div>`
+}
+
+// ─── State manager ────────────────────────────────────────────────────────────
+function setState(state) {
+  ['stateIdle','stateLoading','stateError'].forEach(id => {
+    document.getElementById(id).style.display = 'none'
+  })
+  if (state) document.getElementById(state).style.display = 'block'
+}
+
+// Enter key support
+document.addEventListener('keydown', e => { if (e.key === 'Enter') fetchPlayer() })
+</script>
+</body>
+</html>
