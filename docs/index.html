@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Brawl Stars Dashboard</title>
+<link rel="icon" type="image/png" href="assets/brawlstats_logo.png">
+<link rel="apple-touch-icon" href="assets/brawlstats_logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -62,6 +64,10 @@ body::before {
   width: 44px; height: 44px; background: linear-gradient(135deg, var(--accent), var(--orange));
   border-radius: 14px; display: flex; align-items: center; justify-content: center;
   font-size: 22px; box-shadow: 0 12px 28px rgba(247,201,72,0.22); flex-shrink: 0;
+  overflow: hidden;
+}
+.logo-icon img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
 }
 .logo-text {
   font-family: 'Boogaloo', cursive; font-size: 1.22rem;
@@ -328,7 +334,9 @@ body::before {
 <!-- SIDEBAR -->
 <nav class="sidebar">
   <div class="sidebar-logo">
-    <div class="logo-icon">⚡</div>
+    <div class="logo-icon">
+      <img src="assets/brawlstats_logo.png" alt="Brawl Stats" onerror="this.remove();this.parentElement.textContent='⚡'">
+    </div>
     <div>
       <div class="logo-text">Brawl Stats</div>
       <div class="logo-sub">Dashboard</div>
