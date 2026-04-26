@@ -16,6 +16,8 @@
   --purple: #9b5de5;
   --green: #00f593;
   --red: #ff3860;
+  --orange: #ff8c00;
+  --pink: #ff4fd8;
   --text: #e8e8ff;
   --muted: #7070a0;
   --border: rgba(255,255,255,0.07);
@@ -152,7 +154,7 @@ body::before {
 
 /* STAT CARDS */
 .section-title { font-family: 'Boogaloo', cursive; font-size: 1.25rem; margin-bottom: 14px; color: var(--text); }
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-bottom: 28px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-bottom: 28px; }
 .stat-card {
   background: var(--surface); border: 1.5px solid var(--border);
   border-radius: 18px; padding: 20px 22px;
@@ -183,6 +185,8 @@ body::before {
 .cost-gold  { color: var(--accent); }
 .cost-power { color: var(--purple); }
 .cost-zero  { color: var(--green); }
+.cost-hyper { color: var(--orange); }
+.cost-buffy { color: var(--pink); }
 
 /* BRAWLERS PAGE */
 .filters { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
@@ -192,7 +196,7 @@ body::before {
 .sort-select { background: var(--surface); border: 1.5px solid var(--border); border-radius: 50px; padding: 6px 14px; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 0.79rem; font-weight: 700; cursor: pointer; outline: none; margin-left: auto; }
 .brawler-count { color: var(--muted); font-size: 0.81rem; margin-bottom: 14px; }
 .brawler-count span { color: var(--accent3); font-weight: 800; }
-.brawlers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)); gap: 15px; }
+.brawlers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 15px; }
 .brawler-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; overflow: hidden; transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s; animation: fadeUp 0.4s ease both; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 .brawler-card:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.14); }
@@ -219,13 +223,20 @@ body::before {
 .upg-title { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); font-weight: 700; margin-bottom: 5px; }
 .upg-list { display: flex; flex-direction: column; gap: 4px; }
 .upg-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 6px 10px; display: flex; align-items: center; gap: 7px; font-size: 0.78rem; font-weight: 600; }
+.upg-item.active-buffy { border-color: rgba(255,79,216,0.35); background: rgba(255,79,216,0.07); }
+.upg-item.active-hyper { border-color: rgba(255,140,0,0.35); background: rgba(255,140,0,0.07); }
 .upg-icon { font-size: 0.88rem; flex-shrink: 0; }
 .upg-name { flex: 1; }
 .upg-type { font-size: 0.59rem; text-transform: uppercase; letter-spacing: 1px; padding: 2px 6px; border-radius: 50px; font-weight: 800; flex-shrink: 0; }
 .type-gadget { background: rgba(155,93,229,0.2); color: var(--purple); }
 .type-star   { background: rgba(249,196,0,0.15);  color: var(--accent); }
 .type-gear   { background: rgba(0,229,255,0.12);   color: var(--accent3); }
+.type-hyper  { background: rgba(255,140,0,0.18);   color: var(--orange); }
+.type-buffy  { background: rgba(255,79,216,0.18);  color: var(--pink); }
 .no-upgrades { color: var(--muted); font-size: 0.74rem; font-style: italic; }
+
+/* Win streak badge */
+.streak-badge { display: inline-flex; align-items: center; gap: 4px; background: rgba(0,245,147,0.1); border: 1px solid rgba(0,245,147,0.25); border-radius: 6px; padding: 2px 7px; font-size: 0.7rem; font-weight: 800; color: var(--green); margin-left: 6px; }
 
 /* Rarity strips */
 .rarity-Ultra-Legendary { background: linear-gradient(90deg,#ff2020,#ff6600); }
@@ -383,7 +394,7 @@ body::before {
   <div class="page" id="page-brawlers">
     <div class="page-header">
       <div class="page-title">Mis Brawlers</div>
-      <div class="page-subtitle">Lista completa con estadísticas, gadgets y star powers</div>
+      <div class="page-subtitle">Lista completa con estadísticas, gadgets, star powers, hipercargas y buffies</div>
     </div>
     <div id="brawlersEmpty" class="state-box">
       <div class="icon">🎮</div>
@@ -416,111 +427,34 @@ body::before {
 
 <script>
 // ─── Constants ────────────────────────────────────────────────────────────────
-// Base URL for portraits (GitHub Pages serves from repo root)
-const ASSET_BASE    = window.location.pathname.replace(/\/\/.*$/, '')
+const ASSET_BASE    = window.location.pathname.replace(/\/[^/]*$/, '')
 const PORTRAIT_BASE = ASSET_BASE + '/assets/brawler_portraits'
 
-// Maps API brawler name → portrait filename (without _portrait.png)
 const PORTRAITS = {
-  '8-Bit':          '8bit',
-  'Alli':           'alli',
-  'Amber':          'amber',
-  'Angelo':         'angelo',
-  'Ash':            'ash',
-  'Barley':         'barley',
-  'Bea':            'bea',
-  'Belle':          'belle',
-  'Berry':          'berry',
-  'Bibi':           'bibi',
-  'Bo':             'bo',
-  'Bonnie':         'bonnie',
-  'Brock':          'brock',
-  'Bull':           'bull',
-  'Buster':         'buster',
-  'Buzz':           'buzz',
-  'Byron':          'byron',
-  'Carl':           'carl',
-  'Charlie':        'charlie',
-  'Chester':        'chester',
-  'Chuck':          'chuck',
-  'Clancy':         'clancy',
-  'Colette':        'colette',
-  'Colt':           'colt',
-  'Cordelius':      'cordelius',
-  'Crow':           'crow',
-  'Darryl':         'darryl',
-  'Doug':           'doug',
-  'Draco':          'draco',
-  'Dynamike':       'dynamike',
-  'Edgar':          'edgar',
-  'El Primo':       'elprimo',
-  'Emz':            'emz',
-  'Eve':            'eve',
-  'Fang':           'fang',
-  'Finx':           'finx',
-  'Frank':          'frank',
-  'Gale':           'gale',
-  'Gene':           'gene',
-  'Gigi':           'gigi',
-  'Glowbert':       'glowbert',
-  'Gray':           'gray',
-  'Griff':          'griff',
-  'Grom':           'grom',
-  'Gus':            'gus',
-  'Hank':           'hank',
-  'Jacky':          'jacky',
-  'Jae-Yong':       'jae-yong',
-  'Janet':          'janet',
-  'Jessie':         'jessie',
-  'Juju':           'juju',
-  'Kaze':           'kaze',
-  'Kenji':          'kenji',
-  'Kit':            'kit',
-  'Larry & Lawrie': 'larry&lawrie',
-  'Leon':           'leon',
-  'Lily':           'lily',
-  'Lola':           'lola',
-  'Lou':            'lou',
-  'Lumi':           'lumi',
-  'Maisie':         'maisie',
-  'Mandy':          'mandy',
-  'Max':            'max',
-  'Meeple':         'meeple',
-  'Meg':            'meg',
-  'Melodie':        'melodie',
-  'Mico':           'mico',
-  'Mina':           'mina',
-  'Moe':            'moe',
-  'Mortis':         'mortis',
-  'Mr. P':          'mrp',
-  'Nani':           'nani',
-  'Nita':           'nita',
-  'Ollie':          'ollie',
-  'Otis':           'otis',
-  'Pam':            'pam',
-  'Pearl':          'pearl',
-  'Penny':          'penny',
-  'Pierce':         'pierce',
-  'Piper':          'piper',
-  'Poco':           'poco',
-  'Rico':           'rico',
-  'Rosa':           'rosa',
-  'R-T':            'rt',
-  'Ruffs':          'ruffs',
-  'Sam':            'sam',
-  'Sandy':          'sandy',
-  'Shade':          'shade',
-  'Shelly':         'Shelly',
-  'Spike':          'spike',
-  'Sprout':         'sprout',
-  'Squeak':         'squeak',
-  'Stu':            'stu',
-  'Surge':          'surge',
-  'Tara':           'tara',
-  'Tick':           'tick',
-  'Trunk':          'trunk',
-  'Willow':         'willow',
-  'Ziggy':          'ziggy',
+  '8-Bit':'8bit','Alli':'alli','Amber':'amber','Angelo':'angelo','Ash':'ash',
+  'Barley':'barley','Bea':'bea','Belle':'belle','Berry':'berry','Bibi':'bibi',
+  'Bo':'bo','Bonnie':'bonnie','Brock':'brock','Bull':'bull','Buster':'buster',
+  'Buzz':'buzz','Byron':'byron','Carl':'carl','Charlie':'charlie','Chester':'chester',
+  'Chuck':'chuck','Clancy':'clancy','Colette':'colette','Colt':'colt','Cordelius':'cordelius',
+  'Crow':'crow','Darryl':'darryl','Doug':'doug','Draco':'draco','Dynamike':'dynamike',
+  'Edgar':'edgar','El Primo':'elprimo','Emz':'emz','Eve':'eve','Fang':'fang',
+  'Finx':'finx','Frank':'frank','Gale':'gale','Gene':'gene','Gigi':'gigi',
+  'Gray':'gray','Griff':'griff','Grom':'grom','Gus':'gus','Hank':'hank',
+  'Jacky':'jacky','Jae-Yong':'jae-yong','Janet':'janet','Jessie':'jessie','Juju':'juju',
+  'Kaze':'kaze','Kenji':'kenji','Kit':'kit','Larry & Lawrie':'larry&lawrie','Leon':'leon',
+  'Lily':'lily','Lola':'lola','Lou':'lou','Lumi':'lumi','Maisie':'maisie',
+  'Mandy':'mandy','Max':'max','Meeple':'meeple','Meg':'meg','Melodie':'melodie',
+  'Mico':'mico','Mina':'mina','Moe':'moe','Mortis':'mortis','Mr. P':'mrp',
+  'Nani':'nani','Nita':'nita','Ollie':'ollie','Otis':'otis','Pam':'pam',
+  'Pearl':'pearl','Penny':'penny','Pierce':'pierce','Piper':'piper','Poco':'poco',
+  'Rico':'rico','Rosa':'rosa','R-T':'rt','Ruffs':'ruffs','Sam':'sam',
+  'Sandy':'sandy','Shade':'shade','Shelly':'Shelly','Spike':'spike','Sprout':'sprout',
+  'Squeak':'squeak','Stu':'stu','Surge':'surge','Tara':'tara','Tick':'tick',
+  'Trunk':'trunk','Willow':'willow','Ziggy':'ziggy',
+  // New brawlers from JSON
+  'Glowy':'glowy','Sirius':'sirius','Najia':'najia','Ollie':'ollie','Lumi':'lumi',
+  'Finx':'finx','Jae-Yong':'jae-yong','Kaze':'kaze','Alli':'alli','Trunk':'trunk',
+  'Mina':'mina','Ziggy':'ziggy','Pierce':'pierce','Gigi':'gigi',
 }
 
 function getPortrait(name) {
@@ -529,12 +463,38 @@ function getPortrait(name) {
   return `${PORTRAIT_BASE}/${key}_portrait.png`
 }
 
+// Brawlers que tienen Buffies en lugar de Gears
+const BUFFIES_BRAWLERS = new Set([
+  'Shelly','Colt','Spike','Bull','Crow','Bibi','Mortis','Frank',
+  'EMZ','Leon','Nita','Bo','Griff','Colette','Edgar'
+])
+
+// Normaliza nombre para comparar (la API devuelve en mayúsculas)
+function normalizeName(n) {
+  if (!n) return ''
+  // Mapa de nombres de API a nombres normales
+  const MAP = {
+    'SHELLY':'Shelly','COLT':'Colt','SPIKE':'Spike','BULL':'Bull','CROW':'Crow',
+    'BIBI':'Bibi','MORTIS':'Mortis','FRANK':'Frank','EMZ':'Emz','LEON':'Leon',
+    'NITA':'Nita','BO':'Bo','GRIFF':'Griff','COLETTE':'Colette','EDGAR':'Edgar'
+  }
+  return MAP[n] || n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()
+}
+
+function hasBufies(brawlerName) {
+  // La API devuelve nombres en mayúsculas (ej: "SHELLY"), los normalizamos
+  const norm = normalizeName(brawlerName)
+  return BUFFIES_BRAWLERS.has(norm) || BUFFIES_BRAWLERS.has(brawlerName)
+}
+
 // Gold cost to go from level X to X+1
 const GOLD_PER_LEVEL = [0, 20, 35, 75, 140, 290, 480, 800, 1250, 1875, 2800]
-// Power points needed to go from level X to X+1 (index = from level)
-const PP_PER_LEVEL   = [0, 20, 30, 50,  80, 130, 210, 340,  550,  890, 1440] // lv10→11 costs 1440 PP
+const PP_PER_LEVEL   = [0, 20, 30, 50,  80, 130, 210, 340,  550,  890, 1440]
 const GADGET_COST    = 1000
 const STARPOWER_COST = 2000
+const HYPERCHARGE_COST_GOLD = 5000
+const BUFFY_COST_GOLD  = 1000
+const BUFFY_COST_PP    = 2000
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let allBrawlers = [], rarityMap = {}, gadgetCountMap = {}, spCountMap = {}, rarityJSON = {}
@@ -548,23 +508,17 @@ function goTo(page) {
   document.getElementById('nav-' + page).classList.add('active')
 }
 
-// ─── Hardcoded backend (no config needed) ────────────────────────────────────
 const PROXY = 'https://brawlstars-dashboard.onrender.com'
 
-// ─── Load rarity JSON from repo ──────────────────────────────────────────────
-let rarityJSONReady = false
 async function loadRarityJSON() {
   try {
-    const base = window.location.pathname.replace(/\/\/.*$/, '')
+    const base = window.location.pathname.replace(/\/[^/]*$/, '')
     const res = await fetch(base + '/assets/brawler_rarities.json', { cache: 'no-cache' })
     if (!res.ok) throw new Error('Could not load rarities')
     const data = await res.json()
-    // Flatten { "Legendary": ["Spike", ...] } → { "Spike": "Legendary", ... }
     for (const [rarity, names] of Object.entries(data)) {
       for (const name of names) rarityJSON[name] = rarity
     }
-    rarityJSONReady = true
-    console.log(`✅ Loaded ${Object.keys(rarityJSON).length} brawler rarities`)
   } catch(e) {
     console.warn('Could not load brawler_rarities.json:', e.message)
   }
@@ -588,7 +542,6 @@ function saveConfig() {
   }))
 }
 
-// ─── Proxy test ───────────────────────────────────────────────────────────────
 async function testProxy() {
   const dot = document.getElementById('proxyDot'), txt = document.getElementById('proxyStatusText')
   dot.className = 'dot'; txt.textContent = 'Probando...'
@@ -599,7 +552,6 @@ async function testProxy() {
   } catch(e) { dot.className = 'dot red'; txt.textContent = 'Error: ' + e.message }
 }
 
-// ─── Fetch ────────────────────────────────────────────────────────────────────
 async function fetchPlayer() {
   const rawTag = document.getElementById('playerTag').value.trim()
   if (!rawTag) { goTo('connection'); alert('Introduce el Player Tag.'); return }
@@ -641,7 +593,6 @@ async function fetchPlayer() {
   }
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
 function updateSidebar() {
   if (!playerData) return
   document.getElementById('sidebarPlayer').style.display = 'block'
@@ -650,12 +601,20 @@ function updateSidebar() {
   document.getElementById('spTrophies').textContent = (playerData.trophies || 0).toLocaleString('es')
 }
 
-// ─── Cost helpers ─────────────────────────────────────────────────────────────
 function goldToMax(lvl) {
   let t = 0; for (let i = lvl; i < 11; i++) t += GOLD_PER_LEVEL[i]; return t
 }
 function ppToMax(lvl) {
   let t = 0; for (let i = lvl; i < 11; i++) t += PP_PER_LEVEL[i]; return t
+}
+
+// ─── Count buffies owned/missing ─────────────────────────────────────────────
+function countBuffies(b) {
+  if (!hasBufies(b.name)) return { owned: 0, total: 0 }
+  const buffies = b.buffies || {}
+  const owned = [buffies.gadget, buffies.starPower, buffies.hyperCharge].filter(Boolean).length
+  // Total buffies = 3 (gadget buffy, star power buffy, hypercharge buffy)
+  return { owned, total: 3 }
 }
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
@@ -672,10 +631,11 @@ function renderDashboard() {
   document.getElementById('playerName').textContent       = playerData.name || '—'
   document.getElementById('playerTagDisplay').textContent = playerData.tag  || '—'
   document.getElementById('statPills').innerHTML = [
-    { label:'🏆 Trofeos', val:(playerData.trophies||0).toLocaleString('es'),        cls:'gold'  },
-    { label:'📈 Máx',     val:(playerData.highestTrophies||0).toLocaleString('es'), cls:''      },
-    { label:'🏅 Club',    val: playerData.club?.name || 'Sin club',                 cls:''      },
-    { label:'🌍 Exp',     val:`Nv. ${playerData.expLevel||1}`,                     cls:''      },
+    { label:'🏆 Trofeos',  val:(playerData.trophies||0).toLocaleString('es'),        cls:'gold'  },
+    { label:'📈 Máx',      val:(playerData.highestTrophies||0).toLocaleString('es'), cls:''      },
+    { label:'🏅 Club',     val: playerData.club?.name || 'Sin club',                 cls:''      },
+    { label:'🌍 Exp',      val:`Nv. ${playerData.expLevel||1}`,                      cls:''      },
+    { label:'🥊 3v3 Wins', val:(playerData['3vs3Victories']||0).toLocaleString('es'), cls:'green'},
   ].map(p=>`<div class="pill">${p.label}: <span class="val ${p.cls}">${p.val}</span></div>`).join('')
 
   const total = window._totalInGame || 80
@@ -686,11 +646,25 @@ function renderDashboard() {
   const mySP  = allBrawlers.reduce((s,b)=>s+(b.starPowers||[]).length,0)
   const totSP = allBrawlers.reduce((s,b)=>s+(b.totalSP??2),0)
 
+  // Hipercargas
+  const myHC  = allBrawlers.reduce((s,b)=>s+((b.hyperCharges||[]).length>0?1:0),0)
+  const totHC = allBrawlers.length // cada brawler puede tener 1
+
+  // Buffies (solo brawlers con buffies)
+  let myBuffTotal = 0, totBuffTotal = 0
+  for (const b of allBrawlers) {
+    const bc = countBuffies(b)
+    myBuffTotal  += bc.owned
+    totBuffTotal += bc.total
+  }
+
   const cards = [
-    { icon:'🎮', label:'Brawlers desbloqueados',   val:owned,  tot:total, color:'linear-gradient(90deg,var(--accent3),var(--purple))', vc:'var(--accent3)' },
-    { icon:'⭐', label:'Star Powers desbloqueados', val:mySP,   tot:totSP, color:'linear-gradient(90deg,var(--accent),var(--accent2))', vc:'var(--accent)'  },
-    { icon:'⚙️', label:'Gadgets desbloqueados',     val:myG,    tot:totG,  color:'linear-gradient(90deg,var(--purple),#5533aa)',        vc:'var(--purple)'  },
-    { icon:'💎', label:'Brawlers a nivel 11',        val:maxed,  tot:owned, color:'linear-gradient(90deg,var(--green),#00aa66)',         vc:'var(--green)'   },
+    { icon:'🎮', label:'Brawlers desbloqueados',    val:owned,       tot:total,       color:'linear-gradient(90deg,var(--accent3),var(--purple))', vc:'var(--accent3)' },
+    { icon:'⭐', label:'Star Powers desbloqueados',  val:mySP,        tot:totSP,       color:'linear-gradient(90deg,var(--accent),var(--accent2))', vc:'var(--accent)'  },
+    { icon:'⚙️', label:'Gadgets desbloqueados',      val:myG,         tot:totG,        color:'linear-gradient(90deg,var(--purple),#5533aa)',         vc:'var(--purple)'  },
+    { icon:'💎', label:'Brawlers a nivel 11',         val:maxed,       tot:owned,       color:'linear-gradient(90deg,var(--green),#00aa66)',          vc:'var(--green)'   },
+    { icon:'⚡', label:'Hipercargas desbloqueadas',   val:myHC,        tot:totHC,       color:'linear-gradient(90deg,var(--orange),#cc5500)',         vc:'var(--orange)'  },
+    { icon:'✨', label:'Buffies desbloqueados',        val:myBuffTotal, tot:totBuffTotal, color:'linear-gradient(90deg,var(--pink),#cc00aa)',           vc:'var(--pink)'    },
   ]
   document.getElementById('statsGrid').innerHTML = cards.map(c=>{
     const pct = c.tot > 0 ? Math.round((c.val/c.tot)*100) : 0
@@ -707,21 +681,40 @@ function renderDashboard() {
     </div>`
   }).join('')
 
-  // Cost calculations
-  let goldLvl=0, ppLvl=0
+  // ── Cost calculations ──────────────────────────────────────────────────────
+  let goldLvl = 0, ppLvl = 0
   for (const b of allBrawlers) { goldLvl += goldToMax(b.power||1); ppLvl += ppToMax(b.power||1) }
+
   const misG  = allBrawlers.reduce((s,b)=>s+Math.max(0,(b.totalGadgets??2)-(b.gadgets||[]).length),0)
   const misSP = allBrawlers.reduce((s,b)=>s+Math.max(0,(b.totalSP??2)-(b.starPowers||[]).length),0)
   const goldG = misG  * GADGET_COST
   const goldS = misSP * STARPOWER_COST
-  const totGold = goldLvl + goldG + goldS
+
+  // Hipercargas faltantes: brawlers que tienen hyperCharges en la API pero no desbloqueadas
+  // (si el array hyperCharges está vacío = no tiene la hipercarga en el juego aún, no conta)
+  // Solo contamos faltantes si el brawler tiene hipercarga disponible (array no vacío)
+  const misHC = allBrawlers.filter(b => (b.hyperCharges||[]).length === 0).length
+  // Pero mejor: los que tienen hyperCharges definidos en la API (tienen el slot) y no los tienen desbloqueados
+  // Simplificamos: todos los brawlers deberían poder tener hipercarga (ya existen en la API)
+  // Contamos cuántos de mis brawlers YA tienen hipercarga desbloqueada vs cuántos la tienen disponible en juego
+  // Como la API solo devuelve las que tienes, asumimos que todos pueden tenerla
+  const missingHC = totHC - myHC
+  const goldHC = missingHC * HYPERCHARGE_COST_GOLD
+
+  // Buffies faltantes
+  const missingBuffies = totBuffTotal - myBuffTotal
+  const goldBuffies = missingBuffies * BUFFY_COST_GOLD
+  const ppBuffies   = missingBuffies * BUFFY_COST_PP
+
+  const totGold = goldLvl + goldG + goldS + goldHC + goldBuffies
+  const totPP   = ppLvl + ppBuffies
   const fmt = n => n.toLocaleString('es')
 
   document.getElementById('costGrid').innerHTML = `
     <div class="cost-card">
       <div class="cost-card-accent" style="background:linear-gradient(90deg,var(--accent),var(--accent2))"></div>
       <div class="cost-card-title">🪙 Oro necesario</div>
-      <div class="cost-card-subtitle">Para maxear niveles, gadgets y star powers</div>
+      <div class="cost-card-subtitle">Para maxear niveles, gadgets, star powers, hipercargas y buffies</div>
       <div class="cost-row">
         <span class="cost-icon">⬆️</span>
         <span class="cost-label">Subir todos al nivel 11</span>
@@ -737,6 +730,16 @@ function renderDashboard() {
         <span class="cost-label">Star Powers que faltan (×${misSP})</span>
         <span class="cost-value ${goldS===0?'cost-zero':'cost-gold'}">${fmt(goldS)}</span>
       </div>
+      <div class="cost-row">
+        <span class="cost-icon">⚡</span>
+        <span class="cost-label">Hipercargas que faltan (×${missingHC})</span>
+        <span class="cost-value ${goldHC===0?'cost-zero':'cost-hyper'}">${fmt(goldHC)}</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-icon">✨</span>
+        <span class="cost-label">Buffies que faltan (×${missingBuffies})</span>
+        <span class="cost-value ${goldBuffies===0?'cost-zero':'cost-buffy'}">${fmt(goldBuffies)}</span>
+      </div>
       <div class="cost-row" style="border-top:1px solid rgba(249,196,0,0.2);margin-top:4px;padding-top:12px">
         <span class="cost-icon">💰</span>
         <span class="cost-label"><strong>Total de oro</strong></span>
@@ -746,7 +749,7 @@ function renderDashboard() {
     <div class="cost-card">
       <div class="cost-card-accent" style="background:linear-gradient(90deg,var(--purple),#5533aa)"></div>
       <div class="cost-card-title">⚡ Puntos de Fuerza necesarios</div>
-      <div class="cost-card-subtitle">Para subir todos tus brawlers al nivel 11</div>
+      <div class="cost-card-subtitle">Para subir brawlers al nivel 11 y desbloquear buffies</div>
       <div class="cost-row">
         <span class="cost-icon">🎮</span>
         <span class="cost-label">Brawlers sin maxear</span>
@@ -757,10 +760,15 @@ function renderDashboard() {
         <span class="cost-label">Brawlers ya a nivel 11</span>
         <span class="cost-value cost-zero">${maxed}</span>
       </div>
+      <div class="cost-row">
+        <span class="cost-icon">✨</span>
+        <span class="cost-label">Buffies que faltan (×${missingBuffies})</span>
+        <span class="cost-value ${ppBuffies===0?'cost-zero':'cost-buffy'}">${fmt(ppBuffies)}</span>
+      </div>
       <div class="cost-row" style="border-top:1px solid rgba(155,93,229,0.25);margin-top:4px;padding-top:12px">
         <span class="cost-icon">⚡</span>
         <span class="cost-label"><strong>Total puntos de fuerza</strong></span>
-        <span class="cost-value cost-power" style="font-size:1.55rem">${fmt(ppLvl)}</span>
+        <span class="cost-value cost-power" style="font-size:1.55rem">${fmt(totPP)}</span>
       </div>
     </div>`
 }
@@ -802,10 +810,41 @@ function buildCard(b, idx, maxT) {
   const pct = Math.min(100,((b.trophies||0)/maxT)*100).toFixed(1)
   const lvl = b.power||1
   const d   = Math.min(idx*30,600)
-  const g   = (b.gadgets||[]).map(x=>uRow('⚙️',x.name,'gadget')).join('')
-  const sp  = (b.starPowers||[]).map(x=>uRow('⭐',x.name,'star')).join('')
-  const gr  = (b.gears||[]).map(x=>uRow('🔩',x.name,'gear')).join('')
-  const all = g+sp+gr
+  const useBufies = hasBufies(b.name)
+  const buffies = b.buffies || {}
+
+  // Upgrades rows
+  const gRows  = (b.gadgets||[]).map(x=>uRow('⚙️', x.name, 'gadget')).join('')
+  const spRows = (b.starPowers||[]).map(x=>uRow('⭐', x.name, 'star')).join('')
+  const hcRows = (b.hyperCharges||[]).map(x=>uRow('⚡', x.name, 'hyper', true)).join('')
+
+  let extraRows = ''
+  if (useBufies) {
+    // Mostrar buffies en lugar de gears
+    const buffyItems = [
+      { key: 'gadget',      label: 'Buffy Gadget',      owned: buffies.gadget      },
+      { key: 'starPower',   label: 'Buffy Star Power',  owned: buffies.starPower   },
+      { key: 'hyperCharge', label: 'Buffy Hipercarga',  owned: buffies.hyperCharge },
+    ]
+    extraRows = buffyItems.map(bf =>
+      uBuffy(bf.label, bf.owned)
+    ).join('')
+  } else {
+    // Mostrar gears
+    extraRows = (b.gears||[]).map(x=>uRow('🔩', `${x.name} (Nv.${x.level||1})`, 'gear')).join('')
+  }
+
+  const allRows = gRows + spRows + hcRows + extraRows
+  const upgrLabel = useBufies
+    ? 'Gadgets · Star Powers · Hipercargas · Buffies'
+    : 'Gadgets · Star Powers · Hipercargas · Gears'
+
+  // Win streak
+  const streak = b.currentWinStreak || 0
+  const streakBadge = streak > 0
+    ? `<span class="streak-badge">🔥 ${streak}</span>`
+    : ''
+
   return `<div class="brawler-card" style="animation-delay:${d}ms">
     <div class="card-header">
       <div class="rarity-strip rarity-${rc}"></div>
@@ -814,7 +853,10 @@ function buildCard(b, idx, maxT) {
           ? `<img src="${portraitUrl}" alt="${b.name}" loading="lazy" onerror="this.parentElement.innerHTML='⭐'">`
           : `<span>⭐</span>`}
       </div>
-      <div><div class="brawler-name">${b.name}</div><div class="brawler-role">${b.rarity||'Unknown'}</div></div>
+      <div style="min-width:0">
+        <div class="brawler-name">${b.name}${streakBadge}</div>
+        <div class="brawler-role">${b.rarity||'Unknown'}</div>
+      </div>
       <div class="level-badge"><div class="lvl-num lvl-${lvl}">${lvl}</div><div class="lvl-label">Power</div></div>
     </div>
     <div class="card-body">
@@ -824,16 +866,34 @@ function buildCard(b, idx, maxT) {
         <span class="trophy-val">${(b.trophies||0).toLocaleString('es')}</span>
       </div>
       <div class="upgrades-section">
-        <div class="upg-title">Gadgets · Star Powers · Gears</div>
-        ${all?`<div class="upg-list">${all}</div>`:'<p class="no-upgrades">Sin gadgets ni star powers</p>'}
+        <div class="upg-title">${upgrLabel}</div>
+        ${allRows ? `<div class="upg-list">${allRows}</div>` : '<p class="no-upgrades">Sin upgrades</p>'}
       </div>
     </div>
   </div>`
 }
 
-function uRow(icon, name, type) {
-  const labels = {gadget:'Gadget',star:'Star Power',gear:'Gear'}
-  return `<div class="upg-item"><span class="upg-icon">${icon}</span><span class="upg-name">${name}</span><span class="upg-type type-${type}">${labels[type]}</span></div>`
+function uRow(icon, name, type, highlight=false) {
+  const labels = { gadget:'Gadget', star:'Star Power', gear:'Gear', hyper:'Hipercarga' }
+  const cls = highlight ? 'upg-item active-hyper' : 'upg-item'
+  return `<div class="${cls}">
+    <span class="upg-icon">${icon}</span>
+    <span class="upg-name">${name}</span>
+    <span class="upg-type type-${type}">${labels[type]||type}</span>
+  </div>`
+}
+
+function uBuffy(name, owned) {
+  const icon = owned ? '✨' : '○'
+  const cls  = owned ? 'upg-item active-buffy' : 'upg-item'
+  const badge = owned
+    ? `<span class="upg-type type-buffy">Buffy ✓</span>`
+    : `<span class="upg-type" style="background:rgba(255,255,255,0.05);color:var(--muted)">Buffy</span>`
+  return `<div class="${cls}">
+    <span class="upg-icon">${icon}</span>
+    <span class="upg-name">${name}</span>
+    ${badge}
+  </div>`
 }
 
 document.addEventListener('keydown', e => { if (e.key==='Enter') fetchPlayer() })
