@@ -207,11 +207,32 @@ body::before {
 
 /* BRAWLERS PAGE */
 .filters {
-  display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+  display: grid; grid-template-columns: auto 1fr auto; gap: 10px; margin-bottom: 16px; align-items: center;
   background: rgba(25,30,42,0.72); border: 1px solid var(--border);
   border-radius: 16px; padding: 10px; box-shadow: 0 12px 28px rgba(0,0,0,0.14);
 }
 .filter-label { color: var(--muted); font-size: 0.68rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; margin: 0 6px; }
+.rarity-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.filter-tools { display: flex; gap: 10px; align-items: center; justify-content: flex-end; }
+.search-box {
+  display: flex; align-items: center; gap: 8px; min-width: 250px; max-width: 320px;
+  background: rgba(255,255,255,0.065); border: 1px solid var(--border); border-radius: 999px;
+  padding: 7px 10px 7px 12px; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.search-box:focus-within { border-color: var(--accent3); box-shadow: 0 0 0 3px rgba(49,210,242,0.12); background: rgba(255,255,255,0.085); }
+.search-icon { color: var(--muted); font-size: 0.88rem; flex-shrink: 0; }
+.search-input {
+  width: 100%; border: 0; outline: 0; background: transparent; color: var(--text);
+  font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 900;
+}
+.search-input::placeholder { color: var(--muted2); }
+.search-clear {
+  width: 22px; height: 22px; border: 0; border-radius: 999px; background: rgba(255,255,255,0.08);
+  color: var(--muted); cursor: pointer; display: none; align-items: center; justify-content: center;
+  font-size: 1rem; line-height: 1; flex-shrink: 0;
+}
+.search-clear.visible { display: inline-flex; }
+.search-clear:hover { color: var(--text); background: rgba(255,255,255,0.14); }
 .filter-btn {
   background: rgba(255,255,255,0.045); border: 1px solid var(--border); border-radius: 999px;
   padding: 7px 13px; color: var(--muted); font-family: 'Nunito', sans-serif;
@@ -222,7 +243,7 @@ body::before {
 .sort-select {
   background: rgba(255,255,255,0.065); border: 1px solid var(--border); border-radius: 999px;
   padding: 7px 14px; color: var(--text); font-family: 'Nunito', sans-serif;
-  font-size: 0.79rem; font-weight: 900; cursor: pointer; outline: none; margin-left: auto;
+  font-size: 0.79rem; font-weight: 900; cursor: pointer; outline: none;
 }
 .sort-select:focus { border-color: var(--accent3); box-shadow: 0 0 0 3px rgba(49,210,242,0.12); }
 .brawler-count { color: var(--muted); font-size: 0.84rem; margin-bottom: 16px; font-weight: 800; }
@@ -338,6 +359,11 @@ body::before {
   .page { padding: 22px 14px 48px; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .brawlers-grid { grid-template-columns: 1fr; }
+  .filters { grid-template-columns: 1fr; }
+  .filter-label { margin: 0; }
+  .filter-tools { justify-content: stretch; flex-wrap: wrap; }
+  .search-box { min-width: 0; max-width: none; flex: 1; }
+  .sort-select { flex: 1; min-width: 140px; }
   .refresh-btn span { display: none; }
 }
 </style>
@@ -470,19 +496,28 @@ body::before {
     <div id="brawlersContent" style="display:none">
       <div class="filters">
         <span class="filter-label">Rareza</span>
-        <button class="filter-btn active" onclick="setFilter('all',this)">Todos</button>
-        <button class="filter-btn" onclick="setFilter('Ultra Legendary',this)">Ultra Legendary</button>
-        <button class="filter-btn" onclick="setFilter('Legendary',this)">Legendary</button>
-        <button class="filter-btn" onclick="setFilter('Mythic',this)">Mythic</button>
-        <button class="filter-btn" onclick="setFilter('Epic',this)">Epic</button>
-        <button class="filter-btn" onclick="setFilter('Super Rare',this)">Super Rare</button>
-        <button class="filter-btn" onclick="setFilter('Rare',this)">Rare</button>
-        <button class="filter-btn" onclick="setFilter('Common',this)">Common</button>
-        <select class="sort-select" id="sortSelect" onchange="renderBrawlers()">
-          <option value="trophies">Trofeos ↓</option>
-          <option value="level">Nivel ↓</option>
-          <option value="name">Nombre A-Z</option>
-        </select>
+        <div class="rarity-filters">
+          <button class="filter-btn active" onclick="setFilter('all',this)">Todos</button>
+          <button class="filter-btn" onclick="setFilter('Ultra Legendary',this)">Ultra Legendary</button>
+          <button class="filter-btn" onclick="setFilter('Legendary',this)">Legendary</button>
+          <button class="filter-btn" onclick="setFilter('Mythic',this)">Mythic</button>
+          <button class="filter-btn" onclick="setFilter('Epic',this)">Epic</button>
+          <button class="filter-btn" onclick="setFilter('Super Rare',this)">Super Rare</button>
+          <button class="filter-btn" onclick="setFilter('Rare',this)">Rare</button>
+          <button class="filter-btn" onclick="setFilter('Common',this)">Common</button>
+        </div>
+        <div class="filter-tools">
+          <label class="search-box" for="brawlerSearch">
+            <span class="search-icon">⌕</span>
+            <input class="search-input" id="brawlerSearch" type="search" placeholder="Buscar brawler" autocomplete="off" oninput="setSearch(this.value)">
+            <button class="search-clear" id="searchClear" type="button" aria-label="Limpiar búsqueda" onclick="clearSearch()">×</button>
+          </label>
+          <select class="sort-select" id="sortSelect" onchange="renderBrawlers()">
+            <option value="trophies">Trofeos ↓</option>
+            <option value="level">Nivel ↓</option>
+            <option value="name">Nombre A-Z</option>
+          </select>
+        </div>
       </div>
       <div class="brawler-count" id="brawlerCount"></div>
       <div class="brawlers-grid" id="brawlersGrid"></div>
@@ -590,6 +625,7 @@ const BUFFY_COST_PP    = 2000
 // ─── State ────────────────────────────────────────────────────────────────────
 let allBrawlers = [], rarityMap = {}, gadgetCountMap = {}, spCountMap = {}, rarityJSON = {}, rarityJSONByKey = {}, detailsMap = {}
 let currentFilter = 'all', playerData = null
+let currentSearch = ''
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 function goTo(page) {
@@ -948,6 +984,23 @@ function setFilter(f, btn) {
   renderBrawlers()
 }
 
+function setSearch(value) {
+  currentSearch = value
+  document.getElementById('searchClear')?.classList.toggle('visible', value.trim().length > 0)
+  renderBrawlers()
+}
+
+function clearSearch() {
+  const input = document.getElementById('brawlerSearch')
+  currentSearch = ''
+  if (input) {
+    input.value = ''
+    input.focus()
+  }
+  document.getElementById('searchClear')?.classList.remove('visible')
+  renderBrawlers()
+}
+
 function renderBrawlers() {
   if (!allBrawlers.length) {
     document.getElementById('brawlersEmpty').style.display   = 'block'
@@ -959,6 +1012,12 @@ function renderBrawlers() {
   const sort = document.getElementById('sortSelect').value
   let list = [...allBrawlers]
   if (currentFilter !== 'all') list = list.filter(b=>b.rarity===currentFilter)
+  const search = currentSearch.trim()
+  const activeSearch = search.length >= 2
+  if (activeSearch) {
+    const q = brawlerKey(search)
+    list = list.filter(b=>brawlerKey(b.name).includes(q))
+  }
   list.sort((a,b)=>{
     if (sort==='trophies') return (b.trophies||0)-(a.trophies||0)
     if (sort==='level')    return (b.power||0)-(a.power||0)
@@ -966,8 +1025,9 @@ function renderBrawlers() {
     return 0
   })
   const maxT = Math.max(...list.map(b=>b.trophies||0),1)
+  const searchLabel = activeSearch ? ` · búsqueda: <span>${escapeHtml(search)}</span>` : ''
   document.getElementById('brawlerCount').innerHTML =
-    `Mostrando <span>${list.length}</span> de <span>${allBrawlers.length}</span> brawlers`
+    `Mostrando <span>${list.length}</span> de <span>${allBrawlers.length}</span> brawlers${searchLabel}`
   document.getElementById('brawlersGrid').innerHTML = list.map((b,i)=>buildCard(b,i,maxT)).join('')
 }
 
