@@ -433,10 +433,10 @@ const PORTRAIT_BASE = ASSET_BASE + '/assets/brawler_portraits'
 const PORTRAITS = {
   '8-Bit':'8bit','Alli':'alli','Amber':'amber','Angelo':'angelo','Ash':'ash',
   'Barley':'barley','Bea':'bea','Belle':'belle','Berry':'berry','Bibi':'bibi',
-  'Bo':'bo','Bonnie':'bonnie','Brock':'brock','Bull':'bull','Buster':'buster',
+  'Bo':'bo','Bolt':'bolt','Bonnie':'bonnie','Brock':'brock','Bull':'bull','Buster':'buster',
   'Buzz':'buzz','Byron':'byron','Carl':'carl','Charlie':'charlie','Chester':'chester',
   'Chuck':'chuck','Clancy':'clancy','Colette':'colette','Colt':'colt','Cordelius':'cordelius',
-  'Crow':'crow','Darryl':'darryl','Doug':'doug','Draco':'draco','Dynamike':'dynamike',
+  'Crow':'crow','Damian':'damian','Darryl':'darryl','Doug':'doug','Draco':'draco','Dynamike':'dynamike',
   'Edgar':'edgar','El Primo':'elprimo','Emz':'emz','Eve':'eve','Fang':'fang',
   'Finx':'finx','Frank':'frank','Gale':'gale','Gene':'gene','Gigi':'gigi',
   'Gray':'gray','Griff':'griff','Grom':'grom','Gus':'gus','Hank':'hank',
@@ -448,8 +448,8 @@ const PORTRAITS = {
   'Nani':'nani','Nita':'nita','Ollie':'ollie','Otis':'otis','Pam':'pam',
   'Pearl':'pearl','Penny':'penny','Pierce':'pierce','Piper':'piper','Poco':'poco',
   'Rico':'rico','Rosa':'rosa','R-T':'rt','Ruffs':'ruffs','Sam':'sam',
-  'Sandy':'sandy','Shade':'shade','Shelly':'Shelly','Spike':'spike','Sprout':'sprout',
-  'Squeak':'squeak','Stu':'stu','Surge':'surge','Tara':'tara','Tick':'tick',
+  'Sandy':'sandy','Shade':'shade','Shelly':'shelly','Spike':'spike','Sprout':'sprout',
+  'Squeak':'squeak','Starr Nova':'starr_nova','Stu':'stu','Surge':'surge','Tara':'tara','Tick':'tick',
   'Trunk':'trunk','Willow':'willow','Ziggy':'ziggy',
   // New brawlers from JSON
   'Glowy':'glowy','Sirius':'sirius','Najia':'najia','Ollie':'ollie','Lumi':'lumi',
@@ -458,7 +458,7 @@ const PORTRAITS = {
 }
 
 function getPortrait(name) {
-  const key = PORTRAITS[name]
+  const key = PORTRAITS[normalizeName(name)]
   if (!key) return null
   return `${PORTRAIT_BASE}/${key}_portrait.png`
 }
@@ -470,7 +470,30 @@ const BUFFIES_BRAWLERS = new Set([
 ])
 
 // Normaliza nombre para comparar (la API devuelve en mayúsculas)
+function brawlerKey(name) {
+  return String(name || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+}
+
+const canonicalNameMap = {}
+for (const name of Object.keys(PORTRAITS)) canonicalNameMap[brawlerKey(name)] = name
+
+function titleCaseName(name) {
+  return String(name || '').toLowerCase().replace(/\b[a-z0-9]/g, c => c.toUpperCase())
+}
+
+function registerBrawlerName(name) {
+  const key = brawlerKey(name)
+  if (!key) return
+  canonicalNameMap[key] = PORTRAITS[name] ? name : (canonicalNameMap[key] || titleCaseName(name))
+}
+
 function normalizeName(n) {
+  const key = brawlerKey(n)
+  if (canonicalNameMap[key]) return canonicalNameMap[key]
   if (!n) return ''
   // Mapa de nombres de API a nombres normales
   const MAP = {
@@ -478,7 +501,7 @@ function normalizeName(n) {
     'BIBI':'Bibi','MORTIS':'Mortis','FRANK':'Frank','EMZ':'Emz','LEON':'Leon',
     'NITA':'Nita','BO':'Bo','GRIFF':'Griff','COLETTE':'Colette','EDGAR':'Edgar'
   }
-  return MAP[n] || n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()
+  return MAP[n] || titleCaseName(n)
 }
 
 function hasBufies(brawlerName) {
@@ -497,7 +520,7 @@ const BUFFY_COST_GOLD  = 1000
 const BUFFY_COST_PP    = 2000
 
 // ─── State ────────────────────────────────────────────────────────────────────
-let allBrawlers = [], rarityMap = {}, gadgetCountMap = {}, spCountMap = {}, rarityJSON = {}
+let allBrawlers = [], rarityMap = {}, gadgetCountMap = {}, spCountMap = {}, rarityJSON = {}, rarityJSONByKey = {}
 let currentFilter = 'all', playerData = null
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
@@ -517,7 +540,11 @@ async function loadRarityJSON() {
     if (!res.ok) throw new Error('Could not load rarities')
     const data = await res.json()
     for (const [rarity, names] of Object.entries(data)) {
-      for (const name of names) rarityJSON[name] = rarity
+      for (const name of names) {
+        registerBrawlerName(name)
+        rarityJSON[name] = rarity
+        rarityJSONByKey[brawlerKey(name)] = rarity
+      }
     }
   } catch(e) {
     console.warn('Could not load brawler_rarities.json:', e.message)
@@ -571,17 +598,26 @@ async function fetchPlayer() {
     const meta = bRes.ok ? await bRes.json() : { items: [] }
     rarityMap = {}; gadgetCountMap = {}; spCountMap = {}
     for (const b of (meta.items || [])) {
-      rarityMap[b.name]      = b.rarity?.name || 'default'
-      gadgetCountMap[b.name] = (b.gadgets    || []).length
-      spCountMap[b.name]     = (b.starPowers || []).length
+      const name = normalizeName(b.name)
+      const key = brawlerKey(b.name)
+      registerBrawlerName(name)
+      rarityMap[key]       = b.rarity?.name || rarityJSONByKey[key] || 'Unknown'
+      gadgetCountMap[key]  = (b.gadgets    || []).length
+      spCountMap[key]      = (b.starPowers || []).length
     }
     window._totalInGame = (meta.items || []).length || 80
-    allBrawlers = (playerData.brawlers || []).map(b => ({
-      ...b,
-      rarity:       rarityMap[b.name] || rarityJSON[b.name] || 'Unknown',
-      totalGadgets: gadgetCountMap[b.name] ?? 2,
-      totalSP:      spCountMap[b.name]     ?? 2,
-    }))
+    allBrawlers = (playerData.brawlers || []).map(b => {
+      const name = normalizeName(b.name)
+      const key = brawlerKey(name)
+      return {
+        ...b,
+        apiName: b.name,
+        name,
+        rarity:       rarityJSONByKey[key] || rarityMap[key] || 'Unknown',
+        totalGadgets: gadgetCountMap[key] ?? 2,
+        totalSP:      spCountMap[key]     ?? 2,
+      }
+    })
     document.getElementById('stateLoading').style.display = 'none'
     document.getElementById('stateIdle').style.display    = 'block'
     updateSidebar(); renderDashboard(); renderBrawlers(); goTo('dashboard')
