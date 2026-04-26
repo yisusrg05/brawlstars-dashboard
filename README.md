@@ -13,8 +13,13 @@ GitHub Pages (frontend)  →  Render (backend/proxy)  →  API de Brawl Stars
 
 ```
 brawlstars-dashboard/
-├── frontend/
-│   └── index.html          # Dashboard estático (se despliega en GitHub Pages)
+├── docs/
+│   ├── index.html          # Dashboard estático (se despliega en GitHub Pages)
+│   └── assets/
+│       ├── brawler_rarities.json # JSON con todos los brawlers clasificados por rareza
+│       └── brawler_portraits/
+│           ├── shelly_portrait.png # carpeta donde están todos los iconos de cada brawler, con la 
+|                                   # estructura NAME_portrait.png
 ├── backend/
 │   ├── server.js           # Proxy Fastify que llama a la API de Brawl Stars
 │   └── package.json
