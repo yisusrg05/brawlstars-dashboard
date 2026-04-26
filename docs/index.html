@@ -223,16 +223,23 @@ body::before {
 .upg-title { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); font-weight: 700; margin-bottom: 5px; }
 .upg-list { display: flex; flex-direction: column; gap: 4px; }
 .upg-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 6px 10px; display: flex; align-items: center; gap: 7px; font-size: 0.78rem; font-weight: 600; }
-.upg-item.active-buffy { border-color: rgba(255,79,216,0.35); background: rgba(255,79,216,0.07); }
-.upg-item.active-hyper { border-color: rgba(255,140,0,0.35); background: rgba(255,140,0,0.07); }
+.upg-item.owned .upg-name { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.upg-item.owned-gadget { border-color: rgba(0,245,147,0.42); background: rgba(0,245,147,0.09); }
+.upg-item.owned-star { border-color: rgba(249,196,0,0.44); background: rgba(249,196,0,0.10); }
+.upg-item.owned-hyper { border-color: rgba(155,93,229,0.48); background: rgba(155,93,229,0.12); }
+.upg-item.owned-gear { border-color: rgba(0,229,255,0.38); background: rgba(0,229,255,0.08); }
+.upg-item.owned-buffie-gadget { border-color: rgba(0,245,147,0.52); background: linear-gradient(90deg,rgba(0,245,147,0.13),rgba(255,79,216,0.10)); box-shadow: inset 0 0 12px rgba(0,245,147,0.05); }
+.upg-item.owned-buffie-star { border-color: rgba(249,196,0,0.55); background: linear-gradient(90deg,rgba(249,196,0,0.14),rgba(255,79,216,0.10)); box-shadow: inset 0 0 12px rgba(249,196,0,0.06); }
+.upg-item.owned-buffie-hyper { border-color: rgba(155,93,229,0.58); background: linear-gradient(90deg,rgba(155,93,229,0.16),rgba(255,79,216,0.11)); box-shadow: inset 0 0 12px rgba(255,79,216,0.07); }
 .upg-icon { font-size: 0.88rem; flex-shrink: 0; }
-.upg-name { flex: 1; }
+.upg-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .upg-type { font-size: 0.59rem; text-transform: uppercase; letter-spacing: 1px; padding: 2px 6px; border-radius: 50px; font-weight: 800; flex-shrink: 0; }
-.type-gadget { background: rgba(155,93,229,0.2); color: var(--purple); }
+.type-gadget { background: rgba(0,245,147,0.16); color: var(--green); }
 .type-star   { background: rgba(249,196,0,0.15);  color: var(--accent); }
 .type-gear   { background: rgba(0,229,255,0.12);   color: var(--accent3); }
-.type-hyper  { background: rgba(255,140,0,0.18);   color: var(--orange); }
+.type-hyper  { background: rgba(155,93,229,0.20);   color: #c79cff; }
 .type-buffy  { background: rgba(255,79,216,0.18);  color: var(--pink); }
+.type-count  { background: rgba(255,255,255,0.06); color: var(--muted); }
 .no-upgrades { color: var(--muted); font-size: 0.74rem; font-style: italic; }
 
 /* Win streak badge */
@@ -463,7 +470,7 @@ function getPortrait(name) {
   return `${PORTRAIT_BASE}/${key}_portrait.png`
 }
 
-// Brawlers que tienen Buffies en lugar de Gears
+// Brawlers que tienen buffies en lugar de gears
 const BUFFIES_BRAWLERS = new Set([
   'Shelly','Colt','Spike','Bull','Crow','Bibi','Mortis','Frank',
   'EMZ','Leon','Nita','Bo','Griff','Colette','Edgar'
@@ -520,7 +527,7 @@ const BUFFY_COST_GOLD  = 1000
 const BUFFY_COST_PP    = 2000
 
 // ─── State ────────────────────────────────────────────────────────────────────
-let allBrawlers = [], rarityMap = {}, gadgetCountMap = {}, spCountMap = {}, rarityJSON = {}, rarityJSONByKey = {}
+let allBrawlers = [], rarityMap = {}, gadgetCountMap = {}, spCountMap = {}, rarityJSON = {}, rarityJSONByKey = {}, detailsMap = {}
 let currentFilter = 'all', playerData = null
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
@@ -551,14 +558,47 @@ async function loadRarityJSON() {
   }
 }
 
+async function loadBrawlerDetailsJSON() {
+  try {
+    const base = window.location.pathname.replace(/\/[^/]*$/, '')
+    const res = await fetch(base + '/assets/brawlers_details.json', { cache: 'no-cache' })
+    if (!res.ok) throw new Error('Could not load brawler details')
+    const data = await res.json()
+    for (const b of (data.items || [])) {
+      const name = normalizeName(b.name)
+      const key = brawlerKey(name)
+      registerBrawlerName(name)
+      detailsMap[key] = {
+        ...b,
+        name,
+        gadgets: b.gadgets || [],
+        starPowers: b.starPowers || [],
+        hyperCharges: b.hyperCharges || [],
+        gears: b.gears || [],
+      }
+    }
+  } catch(e) {
+    console.warn('Could not load brawlers_details.json:', e.message)
+  }
+}
+
 window.addEventListener('load', async () => {
   await loadRarityJSON()
+  await loadBrawlerDetailsJSON()
   const saved = localStorage.getItem('bs_config')
+  let hasSavedTag = false
   if (saved) {
     try {
       const cfg = JSON.parse(saved)
-      if (cfg.tag) document.getElementById('playerTag').value = cfg.tag
+      if (cfg.tag) {
+        document.getElementById('playerTag').value = cfg.tag
+        hasSavedTag = true
+      }
     } catch {}
+  }
+  if (isLocalTestMode() && (!hasSavedTag || new URLSearchParams(window.location.search).has('mock'))) {
+    await loadLocalTestPlayer()
+    return
   }
   goTo('dashboard')
 })
@@ -579,6 +619,57 @@ async function testProxy() {
   } catch(e) { dot.className = 'dot red'; txt.textContent = 'Error: ' + e.message }
 }
 
+function isLocalTestMode() {
+  return ['localhost', '127.0.0.1', ''].includes(window.location.hostname)
+}
+
+async function loadLocalTestPlayer() {
+  const urls = [
+    '/test/response_1777200435597.json',
+    './test/response_1777200435597.json',
+    '../test/response_1777200435597.json',
+  ]
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { cache: 'no-cache' })
+      if (!res.ok) continue
+      const data = await res.json()
+      hydratePlayerData(data, { items: [] })
+      updateSidebar(); renderDashboard(); renderBrawlers(); goTo('dashboard')
+      return true
+    } catch {}
+  }
+  goTo('dashboard')
+  return false
+}
+
+function hydratePlayerData(data, meta = { items: [] }) {
+  playerData = data
+  rarityMap = {}; gadgetCountMap = {}; spCountMap = {}
+  for (const b of (meta.items || [])) {
+    const name = normalizeName(b.name)
+    const key = brawlerKey(b.name)
+    registerBrawlerName(name)
+    rarityMap[key]       = b.rarity?.name || rarityJSONByKey[key] || 'Unknown'
+    gadgetCountMap[key]  = detailsMap[key]?.gadgets?.length || (b.gadgets    || []).length
+    spCountMap[key]      = detailsMap[key]?.starPowers?.length || (b.starPowers || []).length
+  }
+  window._totalInGame = (meta.items || []).length || Object.keys(detailsMap).length || 80
+  allBrawlers = (playerData.brawlers || []).map(b => {
+    const name = normalizeName(b.name)
+    const key = brawlerKey(name)
+    return {
+      ...b,
+      apiName: b.name,
+      name,
+      details: detailsMap[key] || null,
+      rarity:       rarityJSONByKey[key] || rarityMap[key] || 'Unknown',
+      totalGadgets: gadgetCountMap[key] ?? detailsMap[key]?.gadgets?.length ?? 2,
+      totalSP:      spCountMap[key]     ?? detailsMap[key]?.starPowers?.length ?? 2,
+    }
+  })
+}
+
 async function fetchPlayer() {
   const rawTag = document.getElementById('playerTag').value.trim()
   if (!rawTag) { goTo('connection'); alert('Introduce el Player Tag.'); return }
@@ -594,30 +685,9 @@ async function fetchPlayer() {
       fetch(`${PROXY}/brawlers`),
     ])
     if (!pRes.ok) { const e = await pRes.json().catch(()=>({})); throw new Error(e.error || `HTTP ${pRes.status}`) }
-    playerData = await pRes.json()
+    const player = await pRes.json()
     const meta = bRes.ok ? await bRes.json() : { items: [] }
-    rarityMap = {}; gadgetCountMap = {}; spCountMap = {}
-    for (const b of (meta.items || [])) {
-      const name = normalizeName(b.name)
-      const key = brawlerKey(b.name)
-      registerBrawlerName(name)
-      rarityMap[key]       = b.rarity?.name || rarityJSONByKey[key] || 'Unknown'
-      gadgetCountMap[key]  = (b.gadgets    || []).length
-      spCountMap[key]      = (b.starPowers || []).length
-    }
-    window._totalInGame = (meta.items || []).length || 80
-    allBrawlers = (playerData.brawlers || []).map(b => {
-      const name = normalizeName(b.name)
-      const key = brawlerKey(name)
-      return {
-        ...b,
-        apiName: b.name,
-        name,
-        rarity:       rarityJSONByKey[key] || rarityMap[key] || 'Unknown',
-        totalGadgets: gadgetCountMap[key] ?? 2,
-        totalSP:      spCountMap[key]     ?? 2,
-      }
-    })
+    hydratePlayerData(player, meta)
     document.getElementById('stateLoading').style.display = 'none'
     document.getElementById('stateIdle').style.display    = 'block'
     updateSidebar(); renderDashboard(); renderBrawlers(); goTo('dashboard')
@@ -649,7 +719,7 @@ function countBuffies(b) {
   if (!hasBufies(b.name)) return { owned: 0, total: 0 }
   const buffies = b.buffies || {}
   const owned = [buffies.gadget, buffies.starPower, buffies.hyperCharge].filter(Boolean).length
-  // Total buffies = 3 (gadget buffy, star power buffy, hypercharge buffy)
+  // Total buffies = 3 (gadget buffie, star power buffie, hypercharge buffie)
   return { owned, total: 3 }
 }
 
@@ -848,26 +918,31 @@ function buildCard(b, idx, maxT) {
   const d   = Math.min(idx*30,600)
   const useBufies = hasBufies(b.name)
   const buffies = b.buffies || {}
+  const details = b.details || detailsMap[brawlerKey(b.name)] || {}
+  const ownedGadgets = ownedItemSet(b.gadgets)
+  const ownedSP = ownedItemSet(b.starPowers)
+  const ownedHC = ownedItemSet(b.hyperCharges)
 
-  // Upgrades rows
-  const gRows  = (b.gadgets||[]).map(x=>uRow('⚙️', x.name, 'gadget')).join('')
-  const spRows = (b.starPowers||[]).map(x=>uRow('⭐', x.name, 'star')).join('')
-  const hcRows = (b.hyperCharges||[]).map(x=>uRow('⚡', x.name, 'hyper', true)).join('')
+  const gRows = listOrOwned(details.gadgets, b.gadgets)
+    .map(x=>uRow('⚙️', x.name, 'gadget', ownedGadgets.has(itemKey(x)))).join('')
+  const spRows = listOrOwned(details.starPowers, b.starPowers)
+    .map(x=>uRow('⭐', x.name, 'star', ownedSP.has(itemKey(x)))).join('')
+  const hcRows = listOrOwned(details.hyperCharges, b.hyperCharges)
+    .map(x=>uRow('⚡', x.name, 'hyper', ownedHC.has(itemKey(x)))).join('')
 
   let extraRows = ''
   if (useBufies) {
     // Mostrar buffies en lugar de gears
-    const buffyItems = [
-      { key: 'gadget',      label: 'Buffy Gadget',      owned: buffies.gadget      },
-      { key: 'starPower',   label: 'Buffy Star Power',  owned: buffies.starPower   },
-      { key: 'hyperCharge', label: 'Buffy Hipercarga',  owned: buffies.hyperCharge },
+    const buffieItems = [
+      { key: 'gadget',      label: 'Buffie Gadget',      owned: buffies.gadget      },
+      { key: 'starPower',   label: 'Buffie Star Power',  owned: buffies.starPower   },
+      { key: 'hyperCharge', label: 'Buffie Hipercarga',  owned: buffies.hyperCharge },
     ]
-    extraRows = buffyItems.map(bf =>
-      uBuffy(bf.label, bf.owned)
+    extraRows = buffieItems.map(bf =>
+      uBuffie(bf.label, bf.key, bf.owned)
     ).join('')
   } else {
-    // Mostrar gears
-    extraRows = (b.gears||[]).map(x=>uRow('🔩', `${x.name} (Nv.${x.level||1})`, 'gear')).join('')
+    extraRows = uGearSummary(b.gears || [])
   }
 
   const allRows = gRows + spRows + hcRows + extraRows
@@ -909,25 +984,60 @@ function buildCard(b, idx, maxT) {
   </div>`
 }
 
-function uRow(icon, name, type, highlight=false) {
+function itemKey(item) {
+  return item?.id != null ? `id:${item.id}` : `name:${brawlerKey(item?.name)}`
+}
+
+function ownedItemSet(items) {
+  const set = new Set()
+  for (const item of (items || [])) {
+    set.add(itemKey(item))
+    set.add(`name:${brawlerKey(item.name)}`)
+  }
+  return set
+}
+
+function listOrOwned(list, owned) {
+  return (list && list.length) ? list : (owned || [])
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]))
+}
+
+function uRow(icon, name, type, owned=false, attrs='') {
   const labels = { gadget:'Gadget', star:'Star Power', gear:'Gear', hyper:'Hipercarga' }
-  const cls = highlight ? 'upg-item active-hyper' : 'upg-item'
-  return `<div class="${cls}">
+  const cls = owned ? `upg-item owned owned-${type}` : 'upg-item'
+  return `<div class="${cls}" ${attrs}>
     <span class="upg-icon">${icon}</span>
-    <span class="upg-name">${name}</span>
+    <span class="upg-name">${escapeHtml(name)}</span>
     <span class="upg-type type-${type}">${labels[type]||type}</span>
   </div>`
 }
 
-function uBuffy(name, owned) {
+function uGearSummary(gears) {
+  const count = gears.length
+  const names = gears.map(g=>g.name).filter(Boolean)
+  const title = names.length ? ` title="${escapeHtml(names.join(', '))}"` : ''
+  const cls = count ? 'upg-item owned owned-gear' : 'upg-item'
+  return `<div class="${cls}"${title}>
+    <span class="upg-icon">🔩</span>
+    <span class="upg-name">Gears</span>
+    <span class="upg-type type-gear">${count}</span>
+  </div>`
+}
+
+function uBuffie(name, kind, owned) {
   const icon = owned ? '✨' : '○'
-  const cls  = owned ? 'upg-item active-buffy' : 'upg-item'
+  const cls  = owned ? `upg-item owned owned-buffie-${kind === 'starPower' ? 'star' : kind === 'hyperCharge' ? 'hyper' : 'gadget'}` : 'upg-item'
   const badge = owned
-    ? `<span class="upg-type type-buffy">Buffy ✓</span>`
-    : `<span class="upg-type" style="background:rgba(255,255,255,0.05);color:var(--muted)">Buffy</span>`
+    ? `<span class="upg-type type-buffy">Buffie ✓</span>`
+    : `<span class="upg-type type-count">Buffie</span>`
   return `<div class="${cls}">
     <span class="upg-icon">${icon}</span>
-    <span class="upg-name">${name}</span>
+    <span class="upg-name">${escapeHtml(name)}</span>
     ${badge}
   </div>`
 }
