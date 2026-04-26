@@ -531,6 +531,8 @@ function brawlerKey(name) {
     .replace(/[^a-z0-9]/g, '')
 }
 
+const BUFFIES_BRAWLER_KEYS = new Set([...BUFFIES_BRAWLERS].map(brawlerKey))
+
 const canonicalNameMap = {}
 for (const name of Object.keys(PORTRAITS)) canonicalNameMap[brawlerKey(name)] = name
 
@@ -560,7 +562,7 @@ function normalizeName(n) {
 function hasBufies(brawlerName) {
   // La API devuelve nombres en mayúsculas (ej: "SHELLY"), los normalizamos
   const norm = normalizeName(brawlerName)
-  return BUFFIES_BRAWLERS.has(norm) || BUFFIES_BRAWLERS.has(brawlerName)
+  return BUFFIES_BRAWLER_KEYS.has(brawlerKey(norm)) || BUFFIES_BRAWLER_KEYS.has(brawlerKey(brawlerName))
 }
 
 // Gold cost to go from level X to X+1
