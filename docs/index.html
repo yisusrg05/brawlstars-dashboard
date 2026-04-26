@@ -267,6 +267,19 @@ body::before {
 .upg-title { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 1.35px; color: var(--muted); font-weight: 900; margin-bottom: 8px; }
 .upg-list { display: grid; grid-template-columns: 1fr; gap: 6px; }
 .upg-item { background: rgba(255,255,255,0.045); border: 1px solid var(--border); border-radius: 10px; padding: 7px 10px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 800; min-height: 36px; }
+.upg-item.has-tooltip { position: relative; cursor: help; }
+.gear-tooltip {
+  position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%) translateY(4px);
+  min-width: 180px; max-width: 260px; background: rgba(12,15,22,0.98); border: 1px solid var(--border-strong);
+  border-radius: 10px; padding: 9px 10px; color: var(--text); font-size: 0.72rem; line-height: 1.35;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.38); opacity: 0; pointer-events: none; transition: opacity 0.16s, transform 0.16s;
+  z-index: 20; text-align: left;
+}
+.gear-tooltip::after {
+  content: ''; position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
+  border: 6px solid transparent; border-top-color: rgba(12,15,22,0.98);
+}
+.upg-item.has-tooltip:hover .gear-tooltip { opacity: 1; transform: translateX(-50%) translateY(0); }
 .upg-item.owned .upg-name { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
 .upg-item.owned-gadget { border-color: rgba(0,245,147,0.42); background: rgba(0,245,147,0.09); }
 .upg-item.owned-star { border-color: rgba(249,196,0,0.44); background: rgba(249,196,0,0.10); }
@@ -1068,12 +1081,13 @@ function uRow(icon, name, type, owned=false, attrs='') {
 function uGearSummary(gears) {
   const count = gears.length
   const names = gears.map(g=>g.name).filter(Boolean)
-  const title = names.length ? ` title="${escapeHtml(names.join(', '))}"` : ''
-  const cls = count ? 'upg-item owned owned-gear' : 'upg-item'
-  return `<div class="${cls}"${title}>
+  const tooltip = names.length ? `<span class="gear-tooltip">${escapeHtml(names.join(', '))}</span>` : ''
+  const cls = count ? 'upg-item owned owned-gear has-tooltip' : 'upg-item'
+  return `<div class="${cls}">
     <span class="upg-icon">🔩</span>
     <span class="upg-name">Gears</span>
     <span class="upg-type type-gear">${count}</span>
+    ${tooltip}
   </div>`
 }
 
